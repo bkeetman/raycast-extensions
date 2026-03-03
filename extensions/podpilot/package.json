@@ -1,0 +1,146 @@
+{
+  "name": "podpilot",
+  "title": "PodPilot",
+  "version": "1.0.1",
+  "description": "PodPilot: powerful Kubernetes (kube) operations for Raycast",
+  "keywords": [
+    "podpilot",
+    "kube",
+    "kubernetes",
+    "kubectl",
+    "raycast"
+  ],
+  "icon": "podpilot.png",
+  "author": "brian_keetman",
+  "access": "public",
+  "categories": [
+    "Developer Tools"
+  ],
+  "preferences": [
+    {
+      "name": "kubectlPath",
+      "title": "kubectl Path",
+      "description": "Absolute path or command name for kubectl",
+      "type": "textfield",
+      "default": "kubectl",
+      "required": false
+    },
+    {
+      "name": "awsPath",
+      "title": "aws Path",
+      "description": "Absolute path or command name for aws (for kube exec plugins such as EKS)",
+      "type": "textfield",
+      "default": "aws",
+      "required": false
+    },
+    {
+      "name": "terminalApp",
+      "title": "Terminal App",
+      "description": "App used for exec shell and port-forward commands",
+      "type": "dropdown",
+      "default": "terminal",
+      "data": [
+        {
+          "title": "Terminal.app",
+          "value": "terminal"
+        },
+        {
+          "title": "iTerm",
+          "value": "iterm"
+        }
+      ],
+      "required": false
+    },
+    {
+      "name": "execShell",
+      "title": "Preferred Exec Shell",
+      "description": "First shell attempted for kubectl exec",
+      "type": "textfield",
+      "default": "/bin/sh",
+      "required": false
+    },
+    {
+      "name": "kubectlTimeoutMs",
+      "title": "kubectl Timeout (ms)",
+      "description": "Default timeout used for kubectl commands",
+      "type": "textfield",
+      "default": "15000",
+      "required": false
+    }
+  ],
+  "commands": [
+    {
+      "name": "get-deployments",
+      "title": "Get Deployments",
+      "subtitle": "Kube",
+      "description": "Search deployments and open deployment workspace",
+      "icon": "podpilot.png",
+      "mode": "view"
+    },
+    {
+      "name": "get-pods",
+      "title": "Get Pods",
+      "subtitle": "Kube",
+      "description": "Search pods and run pod actions",
+      "icon": "podpilot.png",
+      "mode": "view"
+    },
+    {
+      "name": "get-services",
+      "title": "Get Services",
+      "subtitle": "Kube",
+      "description": "Search services",
+      "icon": "podpilot.png",
+      "mode": "view"
+    },
+    {
+      "name": "get-jobs",
+      "title": "Get Jobs",
+      "subtitle": "Kube",
+      "description": "Search jobs in cluster",
+      "icon": "podpilot.png",
+      "mode": "view"
+    },
+    {
+      "name": "get-cronjobs",
+      "title": "Get CronJobs",
+      "subtitle": "Kube",
+      "description": "Search cronjobs",
+      "icon": "podpilot.png",
+      "mode": "view"
+    },
+    {
+      "name": "get-contexts",
+      "title": "Get Contexts",
+      "subtitle": "Kube",
+      "description": "Switch context, manage defaults, and favorites",
+      "icon": "podpilot.png",
+      "mode": "view"
+    },
+    {
+      "name": "diagnostics",
+      "title": "Kube Diagnostics",
+      "subtitle": "Kube",
+      "description": "Check kubectl/aws paths and connection health",
+      "icon": "podpilot.png",
+      "mode": "view"
+    }
+  ],
+  "license": "MIT",
+  "scripts": {
+    "dev": "ray develop",
+    "build": "ray build",
+    "lint": "ray lint"
+  },
+  "dependencies": {
+    "@raycast/api": "^1.104.8",
+    "@raycast/utils": "^1.19.1",
+    "execa": "^8.0.1",
+    "react": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.17.57",
+    "@types/react": "^19.0.10",
+    "typescript": "^5.8.2"
+  }
+}

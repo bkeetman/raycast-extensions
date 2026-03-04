@@ -1,5 +1,5 @@
 import { Action, ActionPanel, Icon, List } from "@raycast/api";
-import { ReactNode, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { BRAND_COLORS, podpilotTitle, tintedIcon } from "../lib/brand";
 import { clearResourceCache } from "../lib/kube-data";
 import { isAllNamespaces } from "../lib/namespace";
@@ -31,7 +31,7 @@ interface ResourceCommandListProps<T extends NamespacedResource> {
     context: string;
     selectedNamespace: string;
     refreshResources: () => Promise<void>;
-  }) => ReactNode;
+  }) => ActionPanel.Children;
 }
 
 export function ResourceCommandList<T extends NamespacedResource>({

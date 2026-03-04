@@ -1,6 +1,6 @@
 # PodPilot (Raycast Extension)
 
-![PodPilot Logo](assets/podpilot.png)
+![PodPilot Logo](media/podpilot-logo.png)
 
 PodPilot is a Raycast extension for daily Kubernetes operations using your existing `kubectl` CLI and kubeconfig auth chain.
 
@@ -67,20 +67,3 @@ Raycast runs as a GUI app and may not inherit your full shell PATH. To avoid aut
 ## Apple Silicon
 
 PodPilot works on Apple Silicon as long as your configured `kubectl`/`aws` binaries are installed and executable for your architecture.
-
-## Screenshots
-
-Add screenshots at these paths:
-- `assets/screenshots/browse-resources.png`
-- `assets/screenshots/pod-actions.png`
-- `assets/screenshots/deployment-actions.png`
-- `assets/screenshots/diagnostics.png`
-
-Example markdown placeholders:
-
-```md
-![Browse Resources](assets/screenshots/browse-resources.png)
-![Pod Actions](assets/screenshots/pod-actions.png)
-![Deployment Actions](assets/screenshots/deployment-actions.png)
-![Diagnostics](assets/screenshots/diagnostics.png)
-```

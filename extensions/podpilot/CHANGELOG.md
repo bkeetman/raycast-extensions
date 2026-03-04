@@ -1,6 +1,6 @@
 # PodPilot Changelog
 
-## [1.0.1] - 2026-03-04
+## [Improved Branding and Log Readability] - {PR_MERGE_DATE}
 
 - Refined PodPilot branding and visual consistency across list/detail views.
 - Simplified logs view to focus on terminal-style output for faster debugging.

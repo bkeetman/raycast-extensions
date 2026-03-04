@@ -1,6 +1,6 @@
 import { getPreferenceValues } from "@raycast/api";
 import path from "node:path";
-import { ExtensionPreferences, TerminalApp } from "../types";
+import { TerminalApp } from "../types";
 
 const DEFAULT_TIMEOUT_MS = 15_000;
 
@@ -13,7 +13,7 @@ export interface ResolvedPreferences {
 }
 
 export function getResolvedPreferences(): ResolvedPreferences {
-  const prefs = getPreferenceValues<ExtensionPreferences>();
+  const prefs = getPreferenceValues<Preferences>();
   const kubectlPath = normalizeText(prefs.kubectlPath, "kubectl");
   const awsPath = normalizeText(prefs.awsPath, "aws");
   const terminalApp: TerminalApp = prefs.terminalApp === "iterm" ? "iterm" : "terminal";

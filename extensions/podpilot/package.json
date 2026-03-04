@@ -27,7 +27,7 @@
     },
     {
       "name": "awsPath",
-      "title": "aws Path",
+      "title": "AWS Path",
       "description": "Absolute path or command name for aws (for kube exec plugins such as EKS)",
       "type": "textfield",
       "default": "aws",

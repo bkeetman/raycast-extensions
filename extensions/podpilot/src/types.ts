@@ -2,14 +2,6 @@ export type ResourceTab = "pods" | "deployments" | "services" | "jobs" | "cronjo
 
 export type TerminalApp = "terminal" | "iterm";
 
-export interface ExtensionPreferences {
-  kubectlPath?: string;
-  awsPath?: string;
-  terminalApp?: TerminalApp;
-  execShell?: string;
-  kubectlTimeoutMs?: string;
-}
-
 export interface KubectlResult {
   stdout: string;
   stderr: string;

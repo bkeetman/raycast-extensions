@@ -41,6 +41,14 @@ interface Invocation {
   timeoutMs: number;
 }
 
+function getExecutionEnv(): NodeJS.ProcessEnv {
+  const prefs = getResolvedPreferences();
+  return {
+    ...process.env,
+    PATH: buildCommandPath(process.env.PATH, prefs.kubectlPath, prefs.awsPath),
+  };
+}
+
 function resolveInvocation(args: string[], options?: RunKubectlOptions): Invocation {
   const prefs = getResolvedPreferences();
   const prefix: string[] = [];
@@ -53,15 +61,11 @@ function resolveInvocation(args: string[], options?: RunKubectlOptions): Invocat
   }
 
   const fullArgs = [...prefix, ...args];
-  const env = {
-    ...process.env,
-    PATH: buildCommandPath(process.env.PATH, prefs.kubectlPath, prefs.awsPath),
-  };
 
   return {
     command: prefs.kubectlPath,
     args: fullArgs,
-    env,
+    env: getExecutionEnv(),
     timeoutMs: options?.timeoutMs ?? prefs.timeoutMs,
   };
 }
@@ -128,6 +132,7 @@ export async function resolveBinaryPath(binary: string): Promise<string> {
   try {
     const { stdout } = await execa("which", [binary], {
       reject: true,
+      env: getExecutionEnv(),
     });
     return stdout.trim() || binary;
   } catch {
@@ -143,6 +148,7 @@ export async function runBinaryVersion(binary: string, args: string[]): Promise<
       reject: true,
       timeout: 10_000,
       stripFinalNewline: false,
+      env: getExecutionEnv(),
     });
 
     return {

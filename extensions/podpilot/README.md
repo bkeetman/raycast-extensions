@@ -61,7 +61,7 @@ npm run dev
 
 Raycast runs as a GUI app and may not inherit your full shell PATH. To avoid auth/plugin failures:
 - Prefer absolute paths when needed (for example `/opt/homebrew/bin/kubectl` and `/opt/homebrew/bin/aws`)
-- KubeOps prepends configured `kubectl` and `aws` directories to `PATH` for command execution
+- PodPilot prepends configured `kubectl` and `aws` directories to `PATH` for command execution
 - This allows kubeconfig exec plugins (including EKS with `aws eks get-token`) to work more reliably
 
 ## Apple Silicon

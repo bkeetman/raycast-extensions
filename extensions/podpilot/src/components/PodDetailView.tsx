@@ -13,8 +13,9 @@ import {
 } from "@raycast/api";
 import { FormValidation, useForm } from "@raycast/utils";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { BRAND_COLORS, podpilotHeader, podpilotTitle, tintedIcon } from "../lib/brand";
 import { clearResourceCache } from "../lib/kube-data";
-import { formatErrorMarkdown } from "../lib/error-markdown";
+import { normalizeError } from "../lib/error-markdown";
 import { getResolvedPreferences, buildCommandPath } from "../lib/preferences";
 import { getKubectlCommandString, KubectlCommandError, runKubectl, spawnKubectl } from "../lib/kubectl";
 import { formatCommand, openCommandInTerminal, shellQuote } from "../lib/shell";
@@ -32,6 +33,7 @@ interface TailLogsValues {
   container: string;
   follow: boolean;
   tailLines: string;
+  openInTerminal: boolean;
 }
 
 interface CopyLogsValues {
@@ -51,6 +53,72 @@ interface PortForwardValues {
   protocol: string;
 }
 
+const ANSI_SGR_STRIP_REGEX = /\u001b\[[0-9;]*m/g;
+const ANSI_SGR_DETECT_REGEX = /\u001b\[[0-9;]*m/;
+
+function normalizeLogStream(raw: string): string {
+  return raw
+    .replace(/\r\n/g, "\n")
+    .replace(/\r/g, "\n")
+    .replace(/\\u001b\[/g, "\u001b[")
+    .replace(/\\x1b\[/g, "\u001b[");
+}
+
+function trimLogLines(raw: string, maxLines = 1200): string {
+  const normalized = normalizeLogStream(raw);
+  const lines = normalized.split("\n");
+  return (lines.length > maxLines ? lines.slice(lines.length - maxLines) : lines).join("\n").trimEnd();
+}
+
+function stripAnsiSequences(raw: string): string {
+  return normalizeLogStream(raw).replace(ANSI_SGR_STRIP_REGEX, "");
+}
+
+function hasAnsiSequences(raw: string): boolean {
+  return ANSI_SGR_DETECT_REGEX.test(normalizeLogStream(raw));
+}
+
+function buildPodLogsArgs(
+  podName: string,
+  tailLines: number,
+  options?: {
+    container?: string;
+    follow?: boolean;
+  },
+): string[] {
+  const args = ["logs", podName, "--tail", `${tailLines}`];
+  if (options?.container) {
+    args.push("-c", options.container);
+  }
+  if (options?.follow) {
+    args.push("-f");
+  }
+  return args;
+}
+
+async function openPodLogsInTerminal({
+  context,
+  namespace,
+  podName,
+  container,
+  follow,
+  tailLines,
+}: {
+  context: string;
+  namespace: string;
+  podName: string;
+  container?: string;
+  follow: boolean;
+  tailLines: number;
+}): Promise<void> {
+  const prefs = getResolvedPreferences();
+  const commandPath = buildCommandPath(process.env.PATH, prefs.kubectlPath, prefs.awsPath);
+  const logsArgs = buildPodLogsArgs(podName, tailLines, { container, follow });
+  const command = formatCommand(prefs.kubectlPath, ["--context", context, "-n", namespace, ...logsArgs]);
+  const script = `export PATH=${shellQuote(commandPath)}\n${command}`;
+  await openCommandInTerminal(script, prefs.terminalApp);
+}
+
 export function PodDetailView({ context, namespace, pod, onMutated }: PodDetailViewProps) {
   const podName = pod.metadata.name;
   const containers = pod.spec?.containers?.map((container) => container.name) ?? [];
@@ -59,16 +127,20 @@ export function PodDetailView({ context, namespace, pod, onMutated }: PodDetailV
   const status = pod.status?.phase ?? "Unknown";
   const node = pod.spec?.nodeName ?? "-";
 
-  const markdown = `# ${podName}
+  const markdown = `${podpilotHeader("Pod Workspace", podName)}
+## Runtime
 
-- **Context:** ${context}
-- **Namespace:** ${namespace}
 - **Status:** ${status}
 - **Ready:** ${ready}/${total}
 - **Node:** ${node}
 - **Age:** ${formatAge(pod.metadata.creationTimestamp)}
 - **Created:** ${formatTimestamp(pod.metadata.creationTimestamp)}
-- **Containers:** ${(containers.length > 0 ? containers.join(", ") : "-")}
+
+## Target
+
+- **Context:** ${context}
+- **Namespace:** ${namespace}
+- **Containers:** ${containers.length > 0 ? containers.join(", ") : "-"}
 `;
 
   const runMutation = useCallback(
@@ -90,19 +162,19 @@ export function PodDetailView({ context, namespace, pod, onMutated }: PodDetailV
 
   return (
     <Detail
-      navigationTitle={podName}
+      navigationTitle={podpilotTitle(`Pod: ${podName}`)}
       markdown={markdown}
       actions={
         <ActionPanel>
           <ActionPanel.Section title="Logs">
             <Action.Push
               title="Tail Logs"
-              icon={Icon.Terminal}
+              icon={tintedIcon(Icon.Terminal, BRAND_COLORS.orange)}
               target={<TailLogsForm context={context} namespace={namespace} podName={podName} containers={containers} />}
             />
             <Action.Push
               title="Copy Logs"
-              icon={Icon.Clipboard}
+              icon={tintedIcon(Icon.Clipboard, BRAND_COLORS.sky)}
               target={<CopyLogsForm context={context} namespace={namespace} podName={podName} containers={containers} />}
             />
           </ActionPanel.Section>
@@ -110,12 +182,12 @@ export function PodDetailView({ context, namespace, pod, onMutated }: PodDetailV
           <ActionPanel.Section title="Pod Access">
             <Action.Push
               title="Exec Shell in Terminal"
-              icon={Icon.Window}
+              icon={tintedIcon(Icon.Window, BRAND_COLORS.blue)}
               target={<ExecShellForm context={context} namespace={namespace} podName={podName} containers={containers} />}
             />
             <Action.Push
               title="Port-Forward"
-              icon={Icon.Link}
+              icon={tintedIcon(Icon.Link, BRAND_COLORS.gold)}
               target={<PortForwardForm context={context} namespace={namespace} podName={podName} />}
             />
           </ActionPanel.Section>
@@ -123,7 +195,7 @@ export function PodDetailView({ context, namespace, pod, onMutated }: PodDetailV
           <ActionPanel.Section title="Mutations">
             <Action
               title="Restart Pod (Delete)"
-              icon={Icon.Trash}
+              icon={tintedIcon(Icon.Trash, BRAND_COLORS.danger)}
               style={Action.Style.Destructive}
               onAction={async () => {
                 const confirmed = await confirmAlert({
@@ -163,24 +235,45 @@ function TailLogsForm({
   containers: string[];
 }) {
   const { push } = useNavigation();
+  const prefs = useMemo(() => getResolvedPreferences(), []);
   const containerOptions = containers.length > 0 ? containers : [""];
   const { handleSubmit, itemProps } = useForm<TailLogsValues>({
     initialValues: {
       container: containerOptions[0] ?? "",
       follow: true,
       tailLines: "200",
+      openInTerminal: true,
     },
     validation: {
       tailLines: FormValidation.Required,
     },
     onSubmit: async (values) => {
       const tailLines = Math.max(1, Number.parseInt(values.tailLines, 10) || 200);
+      const selectedContainer = values.container || undefined;
+
+      if (values.openInTerminal) {
+        await openPodLogsInTerminal({
+          context,
+          namespace,
+          podName,
+          container: selectedContainer,
+          follow: values.follow,
+          tailLines,
+        });
+        await showToast({
+          style: Toast.Style.Success,
+          title: "Opened logs in terminal",
+          message: prefs.terminalApp === "iterm" ? "iTerm" : "Terminal.app",
+        });
+        return;
+      }
+
       push(
         <PodLogsDetail
           context={context}
           namespace={namespace}
           podName={podName}
-          container={values.container || undefined}
+          container={selectedContainer}
           follow={values.follow}
           tailLines={tailLines}
         />,
@@ -190,7 +283,7 @@ function TailLogsForm({
 
   return (
     <Form
-      navigationTitle="Tail Logs"
+      navigationTitle={podpilotTitle("Tail Logs")}
       actions={
         <ActionPanel>
           <Action.SubmitForm title="Open Logs" onSubmit={handleSubmit} />
@@ -204,6 +297,7 @@ function TailLogsForm({
       </Form.Dropdown>
       <Form.TextField title="Tail Lines" {...itemProps.tailLines} />
       <Form.Checkbox title="Follow" label="Stream live logs" {...itemProps.follow} />
+      <Form.Checkbox title="Open in Terminal" label="Recommended for live streaming" {...itemProps.openInTerminal} />
     </Form>
   );
 }
@@ -254,7 +348,7 @@ function CopyLogsForm({
 
   return (
     <Form
-      navigationTitle="Copy Logs"
+      navigationTitle={podpilotTitle("Copy Logs")}
       actions={
         <ActionPanel>
           <Action.SubmitForm title="Copy" onSubmit={handleSubmit} />
@@ -315,7 +409,7 @@ function ExecShellForm({
 
   return (
     <Form
-      navigationTitle="Exec Shell"
+      navigationTitle={podpilotTitle("Exec Shell")}
       actions={
         <ActionPanel>
           <Action.SubmitForm title="Open Terminal" onSubmit={handleSubmit} />
@@ -388,7 +482,7 @@ function PortForwardForm({
 
   return (
     <Form
-      navigationTitle="Port-Forward"
+      navigationTitle={podpilotTitle("Port-Forward")}
       actions={
         <ActionPanel>
           <Action.SubmitForm title="Open Terminal" onSubmit={handleSubmit} />
@@ -422,32 +516,43 @@ export function PodLogsDetail({
   follow: boolean;
   tailLines: number;
 }) {
-  const [content, setContent] = useState<string>("");
+  const [refreshToken, setRefreshToken] = useState(0);
+  const [logContent, setLogContent] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<unknown>();
   const contentRef = useRef<string>("");
+  const logsArgs = useMemo(
+    () =>
+      buildPodLogsArgs(podName, tailLines, {
+        container,
+        follow,
+      }),
+    [container, follow, podName, tailLines],
+  );
+  const command = useMemo(
+    () =>
+      getKubectlCommandString(logsArgs, {
+        context,
+        namespace,
+      }),
+    [context, logsArgs, namespace],
+  );
 
-  const append = useCallback((chunk: string) => {
+  const appendChunk = useCallback((chunk: string) => {
     const next = `${contentRef.current}${chunk}`;
     const trimmed = next.length > 200_000 ? next.slice(next.length - 200_000) : next;
     contentRef.current = trimmed;
-    setContent(trimmed);
+    setLogContent(trimmed);
   }, []);
 
   useEffect(() => {
+    setIsLoading(true);
+    setError(undefined);
+    contentRef.current = "";
+    setLogContent("");
+
     const controller = new AbortController();
-    const args = ["logs", podName, "--tail", `${tailLines}`];
-
-    if (container) {
-      args.push("-c", container);
-    }
-
-    if (follow) {
-      args.push("-f");
-    }
-
-    const command = getKubectlCommandString(args, { context, namespace });
-    const child = spawnKubectl(args, {
+    const child = spawnKubectl(logsArgs, {
       context,
       namespace,
       signal: controller.signal,
@@ -455,12 +560,12 @@ export function PodLogsDetail({
     });
 
     child.stdout?.on("data", (chunk: Buffer | string) => {
-      append(chunk.toString());
+      appendChunk(chunk.toString());
       setIsLoading(false);
     });
 
     child.stderr?.on("data", (chunk: Buffer | string) => {
-      append(`\n[stderr] ${chunk.toString()}`);
+      appendChunk(chunk.toString());
       setIsLoading(false);
     });
 
@@ -490,24 +595,61 @@ export function PodLogsDetail({
       controller.abort();
       child.kill("SIGTERM");
     };
-  }, [append, container, context, follow, namespace, podName, tailLines]);
+  }, [appendChunk, context, logsArgs, namespace, refreshToken]);
 
-  if (error) {
-    return <Detail markdown={formatErrorMarkdown(`Logs for ${podName}`, error)} />;
-  }
+  const openInTerminal = useCallback(async () => {
+    try {
+      await openPodLogsInTerminal({
+        context,
+        namespace,
+        podName,
+        container,
+        follow,
+        tailLines,
+      });
+      await showToast({ style: Toast.Style.Success, title: "Opened logs in terminal" });
+    } catch (terminalError) {
+      await showToast({
+        style: Toast.Style.Failure,
+        title: "Failed to open terminal",
+        message: terminalError instanceof Error ? terminalError.message : String(terminalError),
+      });
+    }
+  }, [container, context, follow, namespace, podName, tailLines]);
 
-  const heading = `# Logs: ${podName}${container ? ` (${container})` : ""}`;
-  const modeLine = follow ? "\n\nStreaming mode enabled." : "\n\nOne-time log snapshot.";
-  const markdown = `${heading}${modeLine}\n\n\`\`\`\n${content || "Waiting for logs..."}\n\`\`\``;
+  const refreshTitle = follow ? "Restart Stream" : "Refresh Logs";
+  const errorLogs = useMemo(() => {
+    if (!error) {
+      return "";
+    }
+    const normalized = normalizeError(error);
+    return `${normalized.stdout ?? ""}${normalized.stderr ?? ""}`.trim();
+  }, [error]);
+  const effectiveLogs = logContent || errorLogs;
+  const markdown = useMemo(() => {
+    if (!effectiveLogs) {
+      return `\`\`\`log\n${isLoading ? "Waiting for logs..." : "(no logs received)"}\n\`\`\``;
+    }
+
+    const trimmed = trimLogLines(effectiveLogs);
+    if (hasAnsiSequences(effectiveLogs)) {
+      return `\`\`\`ansi\n${trimmed}\n\`\`\``;
+    }
+
+    return `\`\`\`log\n${stripAnsiSequences(trimmed)}\n\`\`\``;
+  }, [effectiveLogs, isLoading]);
 
   return (
     <Detail
       markdown={markdown}
       isLoading={isLoading}
-      navigationTitle={`Logs: ${podName}`}
+      navigationTitle={podpilotTitle(`Logs: ${podName}${container ? ` (${container})` : ""}`)}
       actions={
         <ActionPanel>
-          <Action.CopyToClipboard title="Copy Logs" content={content} />
+          <Action title={refreshTitle} icon={tintedIcon(Icon.ArrowClockwise, BRAND_COLORS.sky)} onAction={() => setRefreshToken((value) => value + 1)} />
+          <Action title="Open in Terminal" icon={tintedIcon(Icon.Terminal, BRAND_COLORS.orange)} onAction={openInTerminal} />
+          <Action.CopyToClipboard title="Copy kubectl Command" content={command} />
+          <Action.CopyToClipboard title="Copy Logs" content={effectiveLogs} />
         </ActionPanel>
       }
     />

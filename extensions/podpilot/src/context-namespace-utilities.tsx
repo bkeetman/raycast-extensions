@@ -1,6 +1,7 @@
 import { Action, ActionPanel, Icon, List, Toast, showToast } from "@raycast/api";
 import { useMemo } from "react";
 import { ErrorDetail } from "./components/ErrorDetail";
+import { BRAND_COLORS, podpilotTitle, tintedIcon } from "./lib/brand";
 import { setCurrentContext } from "./lib/kube-data";
 import { useContextNamespace } from "./lib/use-context-namespace";
 
@@ -31,7 +32,7 @@ export default function ContextNamespaceUtilitiesCommand() {
   return (
     <List
       isLoading={state.isLoadingContexts || state.isLoadingNamespaces}
-      navigationTitle="Context and Namespace Utilities"
+      navigationTitle={podpilotTitle("Context and Namespace Utilities")}
       searchBarAccessory={accessory}
     >
       <List.Section title="Contexts">
@@ -43,13 +44,17 @@ export default function ContextNamespaceUtilitiesCommand() {
             <List.Item
               key={context}
               title={context}
-              icon={favorite ? Icon.Star : Icon.Globe}
+              icon={
+                favorite
+                  ? tintedIcon(Icon.Star, BRAND_COLORS.gold)
+                  : tintedIcon(Icon.Globe, current ? BRAND_COLORS.sky : BRAND_COLORS.navy)
+              }
               accessories={current ? [{ text: "Selected" }] : []}
               actions={
                 <ActionPanel>
                   <Action
                     title="Switch Current Context"
-                    icon={Icon.ArrowClockwise}
+                    icon={tintedIcon(Icon.ArrowClockwise, BRAND_COLORS.sky)}
                     onAction={async () => {
                       const toast = await showToast({ style: Toast.Style.Animated, title: `Switching to ${context}` });
                       try {
@@ -67,14 +72,14 @@ export default function ContextNamespaceUtilitiesCommand() {
                   />
                   <Action
                     title={favorite ? "Remove Favorite Context" : "Favorite Context"}
-                    icon={favorite ? Icon.StarDisabled : Icon.Star}
+                    icon={favorite ? tintedIcon(Icon.StarDisabled, BRAND_COLORS.gold) : tintedIcon(Icon.Star, BRAND_COLORS.gold)}
                     onAction={async () => {
                       await state.toggleContextFavorite(context);
                     }}
                   />
                   <Action
                     title="Use for Namespace Section"
-                    icon={Icon.TextCursor}
+                    icon={tintedIcon(Icon.TextCursor, BRAND_COLORS.blue)}
                     onAction={() => {
                       state.setSelectedContext(context);
                     }}
@@ -95,20 +100,24 @@ export default function ContextNamespaceUtilitiesCommand() {
             <List.Item
               key={namespace}
               title={namespace}
-              icon={favorite ? Icon.Star : Icon.TextCursor}
+              icon={
+                favorite
+                  ? tintedIcon(Icon.Star, BRAND_COLORS.gold)
+                  : tintedIcon(Icon.TextCursor, selected ? BRAND_COLORS.sky : BRAND_COLORS.blue)
+              }
               accessories={selected ? [{ text: "Selected" }] : []}
               actions={
                 <ActionPanel>
                   <Action
                     title="Select Namespace"
-                    icon={Icon.Checkmark}
+                    icon={tintedIcon(Icon.Checkmark, BRAND_COLORS.sky)}
                     onAction={() => {
                       state.setSelectedNamespace(namespace);
                     }}
                   />
                   <Action
                     title="Set as Default Namespace"
-                    icon={Icon.Pin}
+                    icon={tintedIcon(Icon.Pin, BRAND_COLORS.orange)}
                     onAction={async () => {
                       await state.saveDefaultNamespace(namespace);
                       const toast = await showToast({ style: Toast.Style.Success, title: "Default namespace saved" });
@@ -117,7 +126,7 @@ export default function ContextNamespaceUtilitiesCommand() {
                   />
                   <Action
                     title={favorite ? "Remove Favorite Namespace" : "Favorite Namespace"}
-                    icon={favorite ? Icon.StarDisabled : Icon.Star}
+                    icon={favorite ? tintedIcon(Icon.StarDisabled, BRAND_COLORS.gold) : tintedIcon(Icon.Star, BRAND_COLORS.gold)}
                     onAction={async () => {
                       await state.toggleNamespaceFavorite(namespace);
                     }}

@@ -1,5 +1,6 @@
 import { Action, ActionPanel, Detail } from "@raycast/api";
 import { useEffect, useMemo, useState } from "react";
+import { podpilotHeader, podpilotTitle } from "./lib/brand";
 import { formatErrorMarkdown } from "./lib/error-markdown";
 import { getResolvedPreferences } from "./lib/preferences";
 import { resolveBinaryPath, runBinaryVersion, runKubectl } from "./lib/kubectl";
@@ -7,7 +8,7 @@ import { resolveBinaryPath, runBinaryVersion, runKubectl } from "./lib/kubectl";
 export default function DiagnosticsCommand() {
   const prefs = useMemo(() => getResolvedPreferences(), []);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [markdown, setMarkdown] = useState<string>("# Diagnostics\n\nLoading...");
+  const [markdown, setMarkdown] = useState<string>(`${podpilotHeader("Diagnostics")}\nLoading...`);
   const [refreshToken, setRefreshToken] = useState<number>(0);
 
   useEffect(() => {
@@ -37,7 +38,7 @@ export default function DiagnosticsCommand() {
       try {
         const namespaceResult = await runKubectl(["get", "ns", "-o", "json"], { signal: controller.signal });
         namespaceCheck = "success";
-        namespaceCheckDetails = `\n<details>\n<summary>kubectl get ns output snippet</summary>\n\n\`\`\`json\n${namespaceResult.stdout.slice(0, 2_000)}\n\`\`\`\n\n</details>`;
+        namespaceCheckDetails = `\nOutput snippet:\n\`\`\`json\n${namespaceResult.stdout.slice(0, 2_000)}\n\`\`\``;
       } catch (error) {
         namespaceCheckDetails = `\n${formatErrorMarkdown("kubectl get ns failed", error)}`;
       }
@@ -46,8 +47,7 @@ export default function DiagnosticsCommand() {
         ? `Failed to resolve current context.\n\n${formatErrorMarkdown("Current context failed", contextError)}`
         : `\`${currentContext}\``;
 
-      const output = `# KubeOps Diagnostics
-
+      const output = `${podpilotHeader("Diagnostics", "Environment and cluster connectivity")}
 ## Paths
 
 - **Configured kubectl:** \`${prefs.kubectlPath}\`
@@ -98,7 +98,7 @@ ${namespaceCheckDetails}
 
   return (
     <Detail
-      navigationTitle="Diagnostics"
+      navigationTitle={podpilotTitle("Diagnostics")}
       markdown={markdown}
       isLoading={isLoading}
       actions={

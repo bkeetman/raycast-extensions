@@ -72,7 +72,7 @@
     {
       "name": "get-deployments",
       "title": "Get Deployments",
-      "subtitle": "Kube",
+      "subtitle": "PodPilot",
       "description": "Search deployments and open deployment workspace",
       "icon": "podpilot.png",
       "mode": "view"
@@ -80,7 +80,7 @@
     {
       "name": "get-pods",
       "title": "Get Pods",
-      "subtitle": "Kube",
+      "subtitle": "PodPilot",
       "description": "Search pods and run pod actions",
       "icon": "podpilot.png",
       "mode": "view"
@@ -88,7 +88,7 @@
     {
       "name": "get-services",
       "title": "Get Services",
-      "subtitle": "Kube",
+      "subtitle": "PodPilot",
       "description": "Search services",
       "icon": "podpilot.png",
       "mode": "view"
@@ -96,7 +96,7 @@
     {
       "name": "get-jobs",
       "title": "Get Jobs",
-      "subtitle": "Kube",
+      "subtitle": "PodPilot",
       "description": "Search jobs in cluster",
       "icon": "podpilot.png",
       "mode": "view"
@@ -104,7 +104,7 @@
     {
       "name": "get-cronjobs",
       "title": "Get CronJobs",
-      "subtitle": "Kube",
+      "subtitle": "PodPilot",
       "description": "Search cronjobs",
       "icon": "podpilot.png",
       "mode": "view"
@@ -112,7 +112,7 @@
     {
       "name": "get-contexts",
       "title": "Get Contexts",
-      "subtitle": "Kube",
+      "subtitle": "PodPilot",
       "description": "Switch context, manage defaults, and favorites",
       "icon": "podpilot.png",
       "mode": "view"
@@ -120,7 +120,7 @@
     {
       "name": "diagnostics",
       "title": "Kube Diagnostics",
-      "subtitle": "Kube",
+      "subtitle": "PodPilot",
       "description": "Check kubectl/aws paths and connection health",
       "icon": "podpilot.png",
       "mode": "view"

@@ -1,4 +1,5 @@
 import { Action, ActionPanel, Detail } from "@raycast/api";
+import { podpilotTitle } from "../lib/brand";
 import { formatErrorMarkdown } from "../lib/error-markdown";
 
 interface ErrorDetailProps {
@@ -11,6 +12,7 @@ export function ErrorDetail({ title, error }: ErrorDetailProps) {
 
   return (
     <Detail
+      navigationTitle={podpilotTitle("Error")}
       markdown={markdown}
       actions={
         <ActionPanel>

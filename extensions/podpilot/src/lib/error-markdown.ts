@@ -1,28 +1,25 @@
 import { KubectlCommandError } from "./kubectl";
+import { podpilotHeader } from "./brand";
 
 export function formatErrorMarkdown(title: string, error: unknown): string {
   const normalized = normalizeError(error);
   const stderr = normalized.stderr?.trim() || "(empty)";
+  const stdout = normalized.stdout?.trim();
 
-  return `# ${title}
-
+  return `${podpilotHeader(title, "Command execution failed")}
 ${normalized.message}
 
-<details>
-<summary>Command details</summary>
-
+## kubectl Command
 \`\`\`bash
 ${normalized.command}
 \`\`\`
 
-**stderr**
-\`\`\`
+## stderr
+\`\`\`text
 ${stderr}
 \`\`\`
 
-${normalized.stdout ? `**stdout**\n\`\`\`\n${normalized.stdout}\n\`\`\`` : ""}
-
-</details>`;
+${stdout ? `## stdout\n\`\`\`text\n${stdout}\n\`\`\`` : ""}`;
 }
 
 export function normalizeError(error: unknown): {

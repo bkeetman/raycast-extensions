@@ -12,6 +12,7 @@ import {
 } from "@raycast/api";
 import { FormValidation, useForm } from "@raycast/utils";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { BRAND_COLORS, podPhaseColor, podpilotHeader, podpilotTitle, readyColor, tintedIcon } from "../lib/brand";
 import { clearResourceCache, getDeploymentEvents, getPodsForDeployment } from "../lib/kube-data";
 import { deploymentImages, deploymentPrimaryImage, deploymentReadyStatus, podReadyStatus, podStatus } from "../lib/k8s-display";
 import { runKubectl } from "../lib/kubectl";
@@ -102,45 +103,45 @@ export function DeploymentWorkspaceView({ context, namespace, deployment, onMuta
   }
 
   return (
-    <List isLoading={isLoadingPods} navigationTitle={`Deployment: ${name}`} searchBarPlaceholder="Find actions or pods">
-      <List.Section title="Deployment">
+    <List isLoading={isLoadingPods} navigationTitle={podpilotTitle(`Deployment: ${name}`)} searchBarPlaceholder="Find actions or pods">
+      <List.Section title="Deployment Overview">
         <List.Item
           title={name}
           subtitle={summary}
-          icon={Icon.Gear}
+          icon={tintedIcon(Icon.Gear, BRAND_COLORS.blue)}
           accessories={[{ text: deploymentImages(deployment) }, { text: `${context} / ${namespace}` }]}
           actions={
             <ActionPanel>
-              <Action title="Refresh Workspace" icon={Icon.ArrowClockwise} onAction={refreshData} />
+              <Action title="Refresh Workspace" icon={tintedIcon(Icon.ArrowClockwise, BRAND_COLORS.sky)} onAction={refreshData} />
             </ActionPanel>
           }
         />
       </List.Section>
 
-      <List.Section title="Deployment Actions">
+      <List.Section title="Deployment Controls">
         <List.Item
           title="Rollout Restart"
-          icon={Icon.RotateClockwise}
+          icon={tintedIcon(Icon.RotateClockwise, BRAND_COLORS.orange)}
           subtitle="kubectl rollout restart"
           actions={
             <ActionPanel>
               <Action
                 title="Run Rollout Restart"
-                icon={Icon.RotateClockwise}
+                icon={tintedIcon(Icon.RotateClockwise, BRAND_COLORS.orange)}
                 onAction={async () => {
                   await runMutation("Restarting rollout", async () => {
                     await runKubectl(["rollout", "restart", `deploy/${name}`], { context, namespace });
                   });
                 }}
               />
-              <Action title="Refresh Workspace" icon={Icon.ArrowClockwise} onAction={refreshData} />
+              <Action title="Refresh Workspace" icon={tintedIcon(Icon.ArrowClockwise, BRAND_COLORS.sky)} onAction={refreshData} />
             </ActionPanel>
           }
         />
 
         <List.Item
           title="Rollout Status"
-          icon={Icon.ArrowClockwise}
+          icon={tintedIcon(Icon.ArrowClockwise, BRAND_COLORS.sky)}
           subtitle="kubectl rollout status"
           actions={
             <ActionPanel>
@@ -157,7 +158,7 @@ export function DeploymentWorkspaceView({ context, namespace, deployment, onMuta
                         signal,
                       });
                       return {
-                        markdown: `# Rollout Status\n\n\`\`\`\n${result.stdout || "(no output)"}\n\`\`\``,
+                        markdown: `${podpilotHeader("Rollout Status", `${context}/${namespace}`)}\`\`\`\n${result.stdout || "(no output)"}\n\`\`\``,
                         raw: result.stdout,
                       };
                     }}
@@ -170,7 +171,7 @@ export function DeploymentWorkspaceView({ context, namespace, deployment, onMuta
 
         <List.Item
           title="Scale Replicas"
-          icon={Icon.BarChart}
+          icon={tintedIcon(Icon.BarChart, BRAND_COLORS.gold)}
           subtitle="Set desired replica count"
           actions={
             <ActionPanel>
@@ -192,7 +193,7 @@ export function DeploymentWorkspaceView({ context, namespace, deployment, onMuta
 
         <List.Item
           title="Undo Rollout"
-          icon={Icon.ArrowClockwise}
+          icon={tintedIcon(Icon.ArrowClockwise, BRAND_COLORS.warning)}
           subtitle="Revert to previous deployment revision"
           actions={
             <ActionPanel>
@@ -224,7 +225,7 @@ export function DeploymentWorkspaceView({ context, namespace, deployment, onMuta
 
         <List.Item
           title="Show Events"
-          icon={Icon.List}
+          icon={tintedIcon(Icon.List, BRAND_COLORS.sky)}
           subtitle="Deployment-related events"
           actions={
             <ActionPanel>
@@ -237,7 +238,9 @@ export function DeploymentWorkspaceView({ context, namespace, deployment, onMuta
                     run={async () => {
                       const output = await getDeploymentEvents(context, namespace, name);
                       return {
-                        markdown: `# Events\n\n\`\`\`\n${output || "(no events found)"}\n\`\`\``,
+                        markdown: `${podpilotHeader("Deployment Events", `${context}/${namespace}`)}\`\`\`\n${
+                          output || "(no events found)"
+                        }\n\`\`\``,
                         raw: output,
                       };
                     }}
@@ -254,51 +257,57 @@ export function DeploymentWorkspaceView({ context, namespace, deployment, onMuta
           <List.Item
             title="No Pods Found"
             subtitle="No pods currently match the deployment selector"
-            icon={Icon.Info}
+            icon={tintedIcon(Icon.Info, BRAND_COLORS.gold)}
             actions={
               <ActionPanel>
-                <Action title="Refresh Workspace" icon={Icon.ArrowClockwise} onAction={refreshData} />
+                <Action title="Refresh Workspace" icon={tintedIcon(Icon.ArrowClockwise, BRAND_COLORS.sky)} onAction={refreshData} />
               </ActionPanel>
             }
           />
         ) : null}
 
-        {pods.map((pod) => (
-          <List.Item
-            key={pod.metadata.name}
-            title={pod.metadata.name}
-            subtitle={podStatus(pod)}
-            accessories={[
-              { tag: podReadyStatus(pod) },
-              { text: pod.spec?.nodeName ?? "-" },
-              { text: formatAge(pod.metadata.creationTimestamp) },
-            ]}
-            actions={
-              <ActionPanel>
-                <Action.Push
-                  title="Tail Logs (Live)"
-                  icon={Icon.Terminal}
-                  target={<PodLogsDetail context={context} namespace={namespace} podName={pod.metadata.name} follow tailLines={200} />}
-                />
-                <Action.Push
-                  title="Open Pod Workspace"
-                  target={<PodDetailView context={context} namespace={namespace} pod={pod} onMutated={refreshData} />}
-                />
-                <Action title="Refresh Workspace" icon={Icon.ArrowClockwise} onAction={refreshData} />
-              </ActionPanel>
-            }
-          />
-        ))}
+        {pods.map((pod) => {
+          const status = podStatus(pod);
+          const ready = podReadyStatus(pod);
+          return (
+            <List.Item
+              key={pod.metadata.name}
+              title={pod.metadata.name}
+              subtitle={status}
+              icon={tintedIcon(Icon.Circle, podPhaseColor(status))}
+              accessories={[
+                { tag: { value: ready, color: readyColor(ready) } },
+                { text: pod.spec?.nodeName ?? "-" },
+                { text: formatAge(pod.metadata.creationTimestamp) },
+              ]}
+              actions={
+                <ActionPanel>
+                  <Action.Push
+                    title="Tail Logs (Live)"
+                    icon={tintedIcon(Icon.Terminal, BRAND_COLORS.orange)}
+                    target={<PodLogsDetail context={context} namespace={namespace} podName={pod.metadata.name} follow tailLines={200} />}
+                  />
+                  <Action.Push
+                    title="Open Pod Workspace"
+                    icon={tintedIcon(Icon.AppWindow, BRAND_COLORS.blue)}
+                    target={<PodDetailView context={context} namespace={namespace} pod={pod} onMutated={refreshData} />}
+                  />
+                  <Action title="Refresh Workspace" icon={tintedIcon(Icon.ArrowClockwise, BRAND_COLORS.sky)} onAction={refreshData} />
+                </ActionPanel>
+              }
+            />
+          );
+        })}
       </List.Section>
 
       <List.Section title="Details">
         <List.Item
           title="Created"
           subtitle={formatTimestamp(deployment.metadata.creationTimestamp)}
-          icon={Icon.Calendar}
+          icon={tintedIcon(Icon.Calendar, BRAND_COLORS.sky)}
           actions={
             <ActionPanel>
-              <Action title="Refresh Workspace" icon={Icon.ArrowClockwise} onAction={refreshData} />
+              <Action title="Refresh Workspace" icon={tintedIcon(Icon.ArrowClockwise, BRAND_COLORS.sky)} onAction={refreshData} />
             </ActionPanel>
           }
         />
@@ -365,7 +374,7 @@ function ScaleDeploymentForm({
 
   return (
     <Form
-      navigationTitle="Scale Deployment"
+      navigationTitle={podpilotTitle("Scale Deployment")}
       actions={
         <ActionPanel>
           <Action.SubmitForm title="Scale" onSubmit={handleSubmit} />

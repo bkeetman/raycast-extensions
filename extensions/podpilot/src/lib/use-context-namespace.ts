@@ -13,7 +13,7 @@ import {
   toggleFavoriteNamespace,
 } from "./storage";
 
-interface ContextNamespaceState {
+export interface ContextNamespaceState {
   contexts: string[];
   namespaces: string[];
   favoriteContexts: string[];

@@ -17,8 +17,12 @@ export function formatCommand(command: string, args: string[]): string {
 }
 
 export async function openCommandInTerminal(command: string, terminalApp: TerminalApp): Promise<void> {
-  const filePath = path.join(os.tmpdir(), `kubeops-${Date.now()}.command`);
-  const script = `#!/bin/zsh\nset -euo pipefail\n${command}\n`;
+  const filePath = path.join(os.tmpdir(), `podpilot-${Date.now()}.command`);
+  const script = `#!/bin/zsh
+set -euo pipefail
+(sleep 30; rm -f -- "$0") >/dev/null 2>&1 &
+${command}
+`;
   await writeFile(filePath, script, "utf8");
   await chmod(filePath, 0o755);
 

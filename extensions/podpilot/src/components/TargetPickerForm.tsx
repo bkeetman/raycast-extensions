@@ -1,5 +1,6 @@
 import { Action, ActionPanel, Form, Icon, Toast, showToast, useNavigation } from "@raycast/api";
 import { useEffect, useMemo, useState } from "react";
+import { BRAND_COLORS, podpilotTitle, tintedIcon } from "../lib/brand";
 import { listNamespaces } from "../lib/kube-data";
 import { ALL_NAMESPACES, ALL_NAMESPACES_LABEL, formatNamespaceLabel, isAllNamespaces } from "../lib/namespace";
 
@@ -100,13 +101,13 @@ export function TargetPickerForm({
 
   return (
     <Form
-      navigationTitle="Change Target"
+      navigationTitle={podpilotTitle("Change Target")}
       isLoading={isLoadingNamespaces}
       actions={
         <ActionPanel>
           <Action
             title="Apply Target"
-            icon={Icon.Checkmark}
+            icon={tintedIcon(Icon.Checkmark, BRAND_COLORS.sky)}
             onAction={() => {
               const selectedNamespace = selectedNamespaceValue;
               if (!context || !selectedNamespace) {
@@ -133,7 +134,7 @@ export function TargetPickerForm({
             key={item}
             value={item}
             title={formatNamespaceLabel(item)}
-            icon={item === ALL_NAMESPACES ? Icon.List : undefined}
+            icon={item === ALL_NAMESPACES ? tintedIcon(Icon.List, BRAND_COLORS.gold) : undefined}
           />
         ))}
       </Form.Dropdown>

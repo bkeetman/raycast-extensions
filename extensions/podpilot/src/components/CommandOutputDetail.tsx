@@ -1,5 +1,6 @@
-import { Action, ActionPanel, Detail } from "@raycast/api";
+import { Action, ActionPanel, Detail, Icon } from "@raycast/api";
 import { useEffect, useState } from "react";
+import { BRAND_COLORS, podpilotHeader, podpilotTitle, tintedIcon } from "../lib/brand";
 import { formatErrorMarkdown } from "../lib/error-markdown";
 
 interface CommandOutputDetailProps {
@@ -38,18 +39,27 @@ export function CommandOutputDetail({ title, subtitle, run }: CommandOutputDetai
     };
   }, [run, title]);
 
+  const metadata = (() => {
+    if (!subtitle) {
+      return undefined;
+    }
+
+    const [context, namespace] = subtitle.split("/", 2);
+    return (
+      <Detail.Metadata>
+        <Detail.Metadata.Label title="Workspace" text="PodPilot" icon="podpilot.png" />
+        <Detail.Metadata.Label title="Context" text={context} icon={tintedIcon(Icon.Globe, BRAND_COLORS.sky)} />
+        {namespace ? <Detail.Metadata.Label title="Namespace" text={namespace} icon={tintedIcon(Icon.TextCursor, BRAND_COLORS.gold)} /> : null}
+      </Detail.Metadata>
+    );
+  })();
+
   return (
     <Detail
       isLoading={state.isLoading}
-      navigationTitle={title}
-      markdown={state.markdown || `# ${title}\n\nLoading...`}
-      metadata={
-        subtitle ? (
-          <Detail.Metadata>
-            <Detail.Metadata.Label title="Context" text={subtitle} />
-          </Detail.Metadata>
-        ) : undefined
-      }
+      navigationTitle={podpilotTitle(title)}
+      markdown={state.markdown || `${podpilotHeader(title)}Loading...`}
+      metadata={metadata}
       actions={
         <ActionPanel>
           {state.raw ? <Action.CopyToClipboard title="Copy Output" content={state.raw} /> : null}

@@ -1,4 +1,5 @@
 import { Action, ActionPanel, Icon, List, useNavigation } from "@raycast/api";
+import { BRAND_COLORS, podpilotTitle, tintedIcon } from "../lib/brand";
 import { ALL_NAMESPACES, formatNamespaceLabel, isAllNamespaces } from "../lib/namespace";
 
 interface SelectContextListProps {
@@ -19,7 +20,7 @@ export function SelectContextList({
   const { pop } = useNavigation();
 
   return (
-    <List navigationTitle="Select Context">
+    <List navigationTitle={podpilotTitle("Select Context")}>
       {contexts.map((context) => {
         const favorite = favoriteContexts.includes(context);
 
@@ -27,7 +28,7 @@ export function SelectContextList({
           <List.Item
             key={context}
             title={context}
-            icon={favorite ? Icon.Star : undefined}
+            icon={favorite ? tintedIcon(Icon.Star, BRAND_COLORS.gold) : tintedIcon(Icon.Globe, BRAND_COLORS.blue)}
             accessories={selectedContext === context ? [{ text: "Current" }] : []}
             actions={
               <ActionPanel>
@@ -41,7 +42,7 @@ export function SelectContextList({
                 {onToggleFavorite ? (
                   <Action
                     title={favorite ? "Remove Favorite" : "Add Favorite"}
-                    icon={favorite ? Icon.StarDisabled : Icon.Star}
+                    icon={favorite ? tintedIcon(Icon.StarDisabled, BRAND_COLORS.gold) : tintedIcon(Icon.Star, BRAND_COLORS.gold)}
                     onAction={async () => {
                       await onToggleFavorite(context);
                     }}
@@ -77,7 +78,7 @@ export function SelectNamespaceList({
   const items = includeAllOption ? [ALL_NAMESPACES, ...namespaces] : namespaces;
 
   return (
-    <List navigationTitle="Select Namespace">
+    <List navigationTitle={podpilotTitle("Select Namespace")}>
       {items.map((namespace) => {
         const isAll = isAllNamespaces(namespace);
         const favorite = favoriteNamespaces.includes(namespace);
@@ -86,7 +87,13 @@ export function SelectNamespaceList({
           <List.Item
             key={namespace}
             title={formatNamespaceLabel(namespace)}
-            icon={isAll ? Icon.List : favorite ? Icon.Star : undefined}
+            icon={
+              isAll
+                ? tintedIcon(Icon.List, BRAND_COLORS.gold)
+                : favorite
+                  ? tintedIcon(Icon.Star, BRAND_COLORS.gold)
+                  : tintedIcon(Icon.TextCursor, BRAND_COLORS.blue)
+            }
             accessories={selectedNamespace === namespace ? [{ text: "Selected" }] : []}
             actions={
               <ActionPanel>
@@ -100,7 +107,7 @@ export function SelectNamespaceList({
                 {onToggleFavorite && !isAll ? (
                   <Action
                     title={favorite ? "Remove Favorite" : "Add Favorite"}
-                    icon={favorite ? Icon.StarDisabled : Icon.Star}
+                    icon={favorite ? tintedIcon(Icon.StarDisabled, BRAND_COLORS.gold) : tintedIcon(Icon.Star, BRAND_COLORS.gold)}
                     onAction={async () => {
                       await onToggleFavorite(namespace);
                     }}

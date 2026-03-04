@@ -1,14 +1,22 @@
 import { Action, ActionPanel, Detail } from "@raycast/api";
 import { useEffect, useMemo, useState } from "react";
-import { podpilotHeader, podpilotTitle } from "./lib/brand";
-import { formatErrorMarkdown } from "./lib/error-markdown";
+import {
+  PODPILOT_ACTIVE_THEME,
+  PODPILOT_FALLBACK_THEME,
+  PODPILOT_THEMES,
+  podpilotHeader,
+  podpilotStatus,
+  podpilotTitle,
+  podpilotTwoColumnTable,
+} from "./lib/brand";
+import { formatErrorMarkdown, normalizeError } from "./lib/error-markdown";
 import { getResolvedPreferences } from "./lib/preferences";
 import { resolveBinaryPath, runBinaryVersion, runKubectl } from "./lib/kubectl";
 
 export default function DiagnosticsCommand() {
   const prefs = useMemo(() => getResolvedPreferences(), []);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [markdown, setMarkdown] = useState<string>(`${podpilotHeader("Diagnostics")}\nLoading...`);
+  const [markdown, setMarkdown] = useState<string>(`${podpilotHeader("Diagnostics")}\nCalibrating mission telemetry...`);
   const [refreshToken, setRefreshToken] = useState<number>(0);
 
   useEffect(() => {
@@ -33,47 +41,81 @@ export default function DiagnosticsCommand() {
         contextError = error;
       }
 
-      let namespaceCheck = "failed";
+      let namespaceCheckOk = false;
       let namespaceCheckDetails = "";
       try {
         const namespaceResult = await runKubectl(["get", "ns", "-o", "json"], { signal: controller.signal });
-        namespaceCheck = "success";
-        namespaceCheckDetails = `\nOutput snippet:\n\`\`\`json\n${namespaceResult.stdout.slice(0, 2_000)}\n\`\`\``;
+        namespaceCheckOk = true;
+        namespaceCheckDetails = `\`\`\`json\n${namespaceResult.stdout.slice(0, 2_000)}\n\`\`\``;
       } catch (error) {
-        namespaceCheckDetails = `\n${formatErrorMarkdown("kubectl get ns failed", error)}`;
+        const normalized = normalizeError(error);
+        namespaceCheckDetails = `${normalized.message}
+
+\`\`\`bash
+${normalized.command}
+\`\`\`
+
+\`\`\`text
+${normalized.stderr?.trim() || "(empty)"}
+\`\`\``;
       }
 
       const currentContextBlock = contextError
-        ? `Failed to resolve current context.\n\n${formatErrorMarkdown("Current context failed", contextError)}`
+        ? (() => {
+            const normalized = normalizeError(contextError);
+            return `Failed to resolve current context.
+
+\`\`\`bash
+${normalized.command}
+\`\`\`
+
+\`\`\`text
+${normalized.stderr?.trim() || normalized.message}
+\`\`\``;
+          })()
         : `\`${currentContext}\``;
 
+      const theme = PODPILOT_THEMES[PODPILOT_ACTIVE_THEME];
       const output = `${podpilotHeader("Diagnostics", "Environment and cluster connectivity")}
-## Paths
+${theme.accent} **Theme:** ${theme.label} · fallback \`${PODPILOT_FALLBACK_THEME}\`
 
-- **Configured kubectl:** \`${prefs.kubectlPath}\`
-- **Detected kubectl:** \`${kubectlResolved}\`
-- **Configured aws:** \`${prefs.awsPath}\`
-- **Detected aws:** \`${awsResolved}\`
+## 🛰️ Paths
+${podpilotTwoColumnTable(
+  [
+    ["Configured kubectl", `\`${prefs.kubectlPath}\``],
+    ["Detected kubectl", `\`${kubectlResolved}\``],
+    ["Configured aws", `\`${prefs.awsPath}\``],
+    ["Detected aws", `\`${awsResolved}\``],
+  ],
+  "Binary",
+  "Path",
+)}
 
-## Versions
+## 🌌 Health Checks
+${podpilotTwoColumnTable(
+  [
+    ["kubectl --client", podpilotStatus(kubectlVersion.ok, "Ready", "Issue detected")],
+    ["aws --version", podpilotStatus(awsVersion.ok, "Ready", "Issue detected")],
+    ["kubectl get ns", podpilotStatus(namespaceCheckOk, "Reachable", "Failed")],
+  ],
+  "Check",
+  "Result",
+)}
 
-- **kubectl:** ${kubectlVersion.ok ? "OK" : "FAIL"}
-\`\`\`
+## 🧭 Current Context
+${currentContextBlock}
+
+## 📦 kubectl --client
+\`\`\`text
 ${kubectlVersion.output || "(no output)"}
 \`\`\`
 
-- **aws:** ${awsVersion.ok ? "OK" : "FAIL"}
-\`\`\`
+## ☁️ aws --version
+\`\`\`text
 ${awsVersion.output || "(no output)"}
 \`\`\`
 
-## Cluster Access
-
-### Current Context
-${currentContextBlock}
-
-### kubectl get ns
-**${namespaceCheck.toUpperCase()}**
+## ✨ Namespace Probe
 ${namespaceCheckDetails}
 `;
 

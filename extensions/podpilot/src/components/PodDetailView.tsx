@@ -53,8 +53,22 @@ interface PortForwardValues {
   protocol: string;
 }
 
-const ANSI_SGR_STRIP_REGEX = /\u001b\[[0-9;]*m/g;
-const ANSI_SGR_DETECT_REGEX = /\u001b\[[0-9;]*m/;
+const MAX_LOG_BUFFER_LINES = 1200;
+
+type LogStreamSource = "stdout" | "stderr";
+
+type LogLine = {
+  id: string;
+  raw: string;
+  timestamp: string;
+};
+
+const logTimestampFormatter = new Intl.DateTimeFormat(undefined, {
+  hour: "2-digit",
+  minute: "2-digit",
+  second: "2-digit",
+  hour12: false,
+});
 
 function normalizeLogStream(raw: string): string {
   return raw
@@ -64,18 +78,70 @@ function normalizeLogStream(raw: string): string {
     .replace(/\\x1b\[/g, "\u001b[");
 }
 
-function trimLogLines(raw: string, maxLines = 1200): string {
+function restoreBareAnsiSequences(raw: string): string {
   const normalized = normalizeLogStream(raw);
-  const lines = normalized.split("\n");
-  return (lines.length > maxLines ? lines.slice(lines.length - maxLines) : lines).join("\n").trimEnd();
+  return normalized.replace(/(^|[^\u001b])\[(\d{1,3}(?:;\d{1,3})*)m/g, (_match, prefix: string, sgr: string) => {
+    return `${prefix}\u001b[${sgr}m`;
+  });
 }
 
-function stripAnsiSequences(raw: string): string {
-  return normalizeLogStream(raw).replace(ANSI_SGR_STRIP_REGEX, "");
+const ANSI_ESCAPE_REGEX = /\u001b\[([0-9;]*)m/g;
+
+function stripAnsiControlCodes(raw: string): string {
+  return restoreBareAnsiSequences(raw).replace(ANSI_ESCAPE_REGEX, "");
 }
 
-function hasAnsiSequences(raw: string): boolean {
-  return ANSI_SGR_DETECT_REGEX.test(normalizeLogStream(raw));
+function ansiColorBadge(raw: string): string {
+  const line = restoreBareAnsiSequences(raw);
+  let activeColor: number | undefined;
+
+  for (const match of line.matchAll(ANSI_ESCAPE_REGEX)) {
+    const codes = (match[1] || "0")
+      .split(";")
+      .map((part) => Number.parseInt(part, 10))
+      .filter((value) => Number.isFinite(value));
+
+    for (const code of codes) {
+      if (code === 0 || code === 39) {
+        activeColor = undefined;
+        continue;
+      }
+      if ((code >= 30 && code <= 37) || (code >= 90 && code <= 97)) {
+        activeColor = code;
+      }
+    }
+  }
+
+  if (activeColor === undefined) {
+    return "⚪";
+  }
+
+  if (activeColor === 31 || activeColor === 91) {
+    return "🔴";
+  }
+  if (activeColor === 32 || activeColor === 92) {
+    return "🟢";
+  }
+  if (activeColor === 33 || activeColor === 93) {
+    return "🟡";
+  }
+  if (activeColor === 34 || activeColor === 94) {
+    return "🔵";
+  }
+  if (activeColor === 35 || activeColor === 95) {
+    return "🟣";
+  }
+  if (activeColor === 36 || activeColor === 96) {
+    return "🔹";
+  }
+  return "⚪";
+}
+
+function splitLogChunk(chunk: string, remainder: string): { completeLines: string[]; remainder: string } {
+  const merged = `${remainder}${normalizeLogStream(chunk)}`;
+  const lines = merged.split("\n");
+  const nextRemainder = lines.pop() ?? "";
+  return { completeLines: lines, remainder: nextRemainder };
 }
 
 function buildPodLogsArgs(
@@ -517,10 +583,12 @@ export function PodLogsDetail({
   tailLines: number;
 }) {
   const [refreshToken, setRefreshToken] = useState(0);
-  const [logContent, setLogContent] = useState<string>("");
+  const [logLines, setLogLines] = useState<LogLine[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<unknown>();
-  const contentRef = useRef<string>("");
+  const logLinesRef = useRef<LogLine[]>([]);
+  const lineCounterRef = useRef<number>(0);
+  const remaindersRef = useRef<Record<LogStreamSource, string>>({ stdout: "", stderr: "" });
   const logsArgs = useMemo(
     () =>
       buildPodLogsArgs(podName, tailLines, {
@@ -538,18 +606,58 @@ export function PodLogsDetail({
     [context, logsArgs, namespace],
   );
 
-  const appendChunk = useCallback((chunk: string) => {
-    const next = `${contentRef.current}${chunk}`;
-    const trimmed = next.length > 200_000 ? next.slice(next.length - 200_000) : next;
-    contentRef.current = trimmed;
-    setLogContent(trimmed);
+  const appendLines = useCallback((incomingLines: string[]) => {
+    if (incomingLines.length === 0) {
+      return;
+    }
+
+    const nextLines = incomingLines.map((raw) => {
+      lineCounterRef.current += 1;
+      return {
+        id: `${lineCounterRef.current}`,
+        raw,
+        timestamp: logTimestampFormatter.format(new Date()),
+      };
+    });
+
+    // Newest-first ordering for top-locked follow mode.
+    const merged = [...nextLines.reverse(), ...logLinesRef.current];
+    const trimmed = merged.length > MAX_LOG_BUFFER_LINES ? merged.slice(0, MAX_LOG_BUFFER_LINES) : merged;
+    logLinesRef.current = trimmed;
+    setLogLines(trimmed);
   }, []);
+
+  const appendChunk = useCallback(
+    (chunk: string, source: LogStreamSource) => {
+      const { completeLines, remainder } = splitLogChunk(chunk, remaindersRef.current[source]);
+      remaindersRef.current[source] = remainder;
+      appendLines(completeLines);
+      setIsLoading(false);
+    },
+    [appendLines],
+  );
+
+  const flushRemainders = useCallback(() => {
+    const pending: Array<{ source: LogStreamSource; text: string }> = [];
+
+    (["stdout", "stderr"] as const).forEach((source) => {
+      const text = remaindersRef.current[source];
+      if (text) {
+        pending.push({ source, text });
+      }
+      remaindersRef.current[source] = "";
+    });
+
+    pending.forEach(({ text }) => appendLines([text]));
+  }, [appendLines]);
 
   useEffect(() => {
     setIsLoading(true);
     setError(undefined);
-    contentRef.current = "";
-    setLogContent("");
+    setLogLines([]);
+    logLinesRef.current = [];
+    lineCounterRef.current = 0;
+    remaindersRef.current = { stdout: "", stderr: "" };
 
     const controller = new AbortController();
     const child = spawnKubectl(logsArgs, {
@@ -560,17 +668,16 @@ export function PodLogsDetail({
     });
 
     child.stdout?.on("data", (chunk: Buffer | string) => {
-      appendChunk(chunk.toString());
-      setIsLoading(false);
+      appendChunk(chunk.toString(), "stdout");
     });
 
     child.stderr?.on("data", (chunk: Buffer | string) => {
-      appendChunk(chunk.toString());
-      setIsLoading(false);
+      appendChunk(chunk.toString(), "stderr");
     });
 
     child
       .then((result) => {
+        flushRemainders();
         if (result.exitCode !== 0) {
           setError(
             new KubectlCommandError("kubectl logs failed", {
@@ -587,6 +694,7 @@ export function PodLogsDetail({
         if (controller.signal.aborted) {
           return;
         }
+        flushRemainders();
         setError(streamError);
         setIsLoading(false);
       });
@@ -595,7 +703,7 @@ export function PodLogsDetail({
       controller.abort();
       child.kill("SIGTERM");
     };
-  }, [appendChunk, context, logsArgs, namespace, refreshToken]);
+  }, [appendChunk, context, flushRemainders, logsArgs, namespace, refreshToken]);
 
   const openInTerminal = useCallback(async () => {
     try {
@@ -625,19 +733,28 @@ export function PodLogsDetail({
     const normalized = normalizeError(error);
     return `${normalized.stdout ?? ""}${normalized.stderr ?? ""}`.trim();
   }, [error]);
-  const effectiveLogs = logContent || errorLogs;
+  const effectiveLogs = useMemo(
+    () => (logLines.length > 0 ? [...logLines].reverse().map((line) => line.raw).join("\n") : errorLogs),
+    [errorLogs, logLines],
+  );
   const markdown = useMemo(() => {
-    if (!effectiveLogs) {
-      return `\`\`\`log\n${isLoading ? "Waiting for logs..." : "(no logs received)"}\n\`\`\``;
+    if (logLines.length > 0) {
+      const stream = logLines
+        .map((line) => `${line.timestamp} ${ansiColorBadge(line.raw)} ${stripAnsiControlCodes(line.raw || " ")}`)
+        .join("\n");
+      return `\`\`\`text\n${stream}\n\`\`\``;
     }
 
-    const trimmed = trimLogLines(effectiveLogs);
-    if (hasAnsiSequences(effectiveLogs)) {
-      return `\`\`\`ansi\n${trimmed}\n\`\`\``;
+    if (errorLogs) {
+      const stream = errorLogs
+        .split("\n")
+        .map((line) => `${ansiColorBadge(line)} ${stripAnsiControlCodes(line)}`)
+        .join("\n");
+      return `\`\`\`text\n${stream}\n\`\`\``;
     }
 
-    return `\`\`\`log\n${stripAnsiSequences(trimmed)}\n\`\`\``;
-  }, [effectiveLogs, isLoading]);
+    return `\`\`\`text\n${isLoading ? "Waiting for logs..." : "(no logs received)"}\n\`\`\``;
+  }, [errorLogs, isLoading, logLines]);
 
   return (
     <Detail

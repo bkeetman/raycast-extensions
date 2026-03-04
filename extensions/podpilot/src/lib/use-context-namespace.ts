@@ -50,11 +50,17 @@ export function useContextNamespace(): ContextNamespaceState {
   }, []);
 
   const selectContext = useCallback((context: string) => {
-    setSelectedContext(context);
-    setNamespaces([]);
-    setFavoriteNamespaces([]);
-    setSelectedNamespace("");
-    setIsLoadingNamespaces(true);
+    setSelectedContext((current) => {
+      if (current === context) {
+        return current;
+      }
+
+      setNamespaces([]);
+      setFavoriteNamespaces([]);
+      setSelectedNamespace("");
+      setIsLoadingNamespaces(true);
+      return context;
+    });
   }, []);
 
   const selectNamespace = useCallback((namespace: string) => {

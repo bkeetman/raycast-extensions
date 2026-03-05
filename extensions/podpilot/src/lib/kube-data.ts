@@ -1,4 +1,4 @@
-import { clearMemoryCacheByPrefix, withCache } from "./cache";
+import { clearMemoryCacheByPrefix, clearPersistentCache, withCache } from "./cache";
 import { runKubectl, runKubectlJson } from "./kubectl";
 import { isAllNamespaces } from "./namespace";
 import { CronJob, Deployment, Job, K8sList, LabelSelector, Pod, Service } from "../types";
@@ -31,6 +31,7 @@ export async function listContexts(forceRefresh = false): Promise<string[]> {
   const key = cacheKey("contexts");
   if (forceRefresh) {
     clearMemoryCacheByPrefix(key);
+    await clearPersistentCache(key);
   }
 
   return withCache(
@@ -43,7 +44,7 @@ export async function listContexts(forceRefresh = false): Promise<string[]> {
         .map((line) => line.trim())
         .filter(Boolean);
     },
-    !forceRefresh,
+    true,
   );
 }
 
@@ -79,6 +80,7 @@ export async function listNamespaces(
   const key = cacheKey("namespaces", context);
   if (forceRefresh) {
     clearMemoryCacheByPrefix(key);
+    await clearPersistentCache(key);
   }
 
   return withCache(
@@ -88,7 +90,7 @@ export async function listNamespaces(
       const payload = await runKubectlJson<K8sList<{ metadata: { name: string } }>>(["get", "ns"], { context, signal });
       return payload.items.map((item) => item.metadata.name).sort((left, right) => left.localeCompare(right));
     },
-    !forceRefresh,
+    true,
   );
 }
 
@@ -99,6 +101,7 @@ export async function getKubeconfigContextNamespace(
   const key = cacheKey("kubeconfig-context-namespace", context);
   if (forceRefresh) {
     clearMemoryCacheByPrefix(key);
+    await clearPersistentCache(key);
   }
 
   return withCache(
@@ -110,7 +113,7 @@ export async function getKubeconfigContextNamespace(
       const namespace = match?.context?.namespace?.trim();
       return namespace && namespace.length > 0 ? namespace : undefined;
     },
-    !forceRefresh,
+    true,
   );
 }
 

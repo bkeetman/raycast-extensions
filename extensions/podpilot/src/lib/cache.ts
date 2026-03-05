@@ -56,6 +56,10 @@ export async function setPersistentCache<T>(key: string, value: T, ttlMs: number
   await LocalStorage.setItem(key, JSON.stringify(payload));
 }
 
+export async function clearPersistentCache(key: string): Promise<void> {
+  await LocalStorage.removeItem(key);
+}
+
 export async function withCache<T>(
   key: string,
   ttlMs: number,

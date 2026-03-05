@@ -1,7 +1,7 @@
 {
   "name": "podpilot",
   "title": "PodPilot",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "PodPilot: powerful Kubernetes (kube) operations for Raycast",
   "keywords": [
     "podpilot",

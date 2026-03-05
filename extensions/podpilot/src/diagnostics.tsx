@@ -16,7 +16,9 @@ import { resolveBinaryPath, runBinaryVersion, runKubectl } from "./lib/kubectl";
 export default function DiagnosticsCommand() {
   const prefs = useMemo(() => getResolvedPreferences(), []);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [markdown, setMarkdown] = useState<string>(`${podpilotHeader("Diagnostics")}\nCalibrating mission telemetry...`);
+  const [markdown, setMarkdown] = useState<string>(
+    `${podpilotHeader("Diagnostics")}\nCalibrating mission telemetry...`,
+  );
   const [refreshToken, setRefreshToken] = useState<number>(0);
 
   useEffect(() => {

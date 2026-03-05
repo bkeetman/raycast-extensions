@@ -56,7 +56,9 @@ function podpilotClassicHeader(title: string, subtitle?: string): string {
 
 function podpilotNebulaHeader(title: string, subtitle?: string): string {
   const theme = PODPILOT_THEMES.nebula;
-  const subtitleLine = subtitle ? `\`${theme.subtitlePrefix}: ${subtitle}\`` : `\`${theme.subtitlePrefix}: Cluster Ops\``;
+  const subtitleLine = subtitle
+    ? `\`${theme.subtitlePrefix}: ${subtitle}\``
+    : `\`${theme.subtitlePrefix}: Cluster Ops\``;
   return `# ${theme.accent} ${title}
 
 **${BRAND_NAME}** ${theme.badge} ${subtitleLine}
@@ -65,7 +67,11 @@ function podpilotNebulaHeader(title: string, subtitle?: string): string {
 `;
 }
 
-export function podpilotHeader(title: string, subtitle?: string, themeName: PodpilotThemeName = PODPILOT_ACTIVE_THEME): string {
+export function podpilotHeader(
+  title: string,
+  subtitle?: string,
+  themeName: PodpilotThemeName = PODPILOT_ACTIVE_THEME,
+): string {
   if (themeName === "classic") {
     return podpilotClassicHeader(title, subtitle);
   }
@@ -76,7 +82,11 @@ export function podpilotStatus(ok: boolean, okText = "Operational", failText = "
   return ok ? `🟢 ${okText}` : `🔴 ${failText}`;
 }
 
-export function podpilotTwoColumnTable(rows: Array<[string, string]>, leftHeader = "Item", rightHeader = "Value"): string {
+export function podpilotTwoColumnTable(
+  rows: Array<[string, string]>,
+  leftHeader = "Item",
+  rightHeader = "Value",
+): string {
   const lines = rows.map(([left, right]) => `| ${left} | ${right} |`);
   return [`| ${leftHeader} | ${rightHeader} |`, "| --- | --- |", ...lines].join("\n");
 }

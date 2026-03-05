@@ -26,7 +26,8 @@ export default function PodActionsCommand() {
   useEffect(() => {
     const namespaceReady =
       Boolean(contextState.selectedNamespace) &&
-      (isAllNamespaces(contextState.selectedNamespace) || contextState.namespaces.includes(contextState.selectedNamespace));
+      (isAllNamespaces(contextState.selectedNamespace) ||
+        contextState.namespaces.includes(contextState.selectedNamespace));
 
     if (!contextState.selectedContext || !namespaceReady) {
       setPods([]);
@@ -106,7 +107,9 @@ export default function PodActionsCommand() {
               icon={tintedIcon(Icon.Circle, podPhaseColor(status))}
               accessories={[
                 { tag: { value: ready, color: readyColor(ready) } },
-                ...(isAllNamespaces(contextState.selectedNamespace) ? [{ text: pod.metadata.namespace ?? "default" }] : []),
+                ...(isAllNamespaces(contextState.selectedNamespace)
+                  ? [{ text: pod.metadata.namespace ?? "default" }]
+                  : []),
                 { text: pod.spec?.nodeName ?? "-" },
                 { text: formatAge(pod.metadata.creationTimestamp) },
               ]}
@@ -137,7 +140,11 @@ export default function PodActionsCommand() {
                       />
                     }
                   />
-                  <Action title="Refresh Resources" icon={tintedIcon(Icon.ArrowClockwise, BRAND_COLORS.sky)} onAction={refreshResources} />
+                  <Action
+                    title="Refresh Resources"
+                    icon={tintedIcon(Icon.ArrowClockwise, BRAND_COLORS.sky)}
+                    onAction={refreshResources}
+                  />
                 </ActionPanel>
               }
             />

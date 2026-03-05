@@ -138,7 +138,9 @@ export function TargetPickerForm({
           />
         ))}
       </Form.Dropdown>
-      {includeAllNamespaces ? <Form.Description text={`${ALL_NAMESPACES_LABEL}: list resources across every namespace`} /> : null}
+      {includeAllNamespaces ? (
+        <Form.Description text={`${ALL_NAMESPACES_LABEL}: list resources across every namespace`} />
+      ) : null}
     </Form>
   );
 }

@@ -1,4 +1,16 @@
-import { Action, ActionPanel, Alert, Clipboard, Detail, Form, Icon, Toast, confirmAlert, showToast, useNavigation } from "@raycast/api";
+import {
+  Action,
+  ActionPanel,
+  Alert,
+  Clipboard,
+  Detail,
+  Form,
+  Icon,
+  Toast,
+  confirmAlert,
+  showToast,
+  useNavigation,
+} from "@raycast/api";
 import { FormValidation, useForm } from "@raycast/utils";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { BRAND_COLORS, podpilotHeader, podpilotTitle, tintedIcon } from "../lib/brand";
@@ -227,12 +239,16 @@ export function PodDetailView({ context, namespace, pod, onMutated }: PodDetailV
             <Action.Push
               title="Tail Logs"
               icon={tintedIcon(Icon.Terminal, BRAND_COLORS.orange)}
-              target={<TailLogsForm context={context} namespace={namespace} podName={podName} containers={containers} />}
+              target={
+                <TailLogsForm context={context} namespace={namespace} podName={podName} containers={containers} />
+              }
             />
             <Action.Push
               title="Copy Logs"
               icon={tintedIcon(Icon.Clipboard, BRAND_COLORS.sky)}
-              target={<CopyLogsForm context={context} namespace={namespace} podName={podName} containers={containers} />}
+              target={
+                <CopyLogsForm context={context} namespace={namespace} podName={podName} containers={containers} />
+              }
             />
           </ActionPanel.Section>
 
@@ -240,7 +256,9 @@ export function PodDetailView({ context, namespace, pod, onMutated }: PodDetailV
             <Action.Push
               title="Exec Shell in Terminal"
               icon={tintedIcon(Icon.Window, BRAND_COLORS.blue)}
-              target={<ExecShellForm context={context} namespace={namespace} podName={podName} containers={containers} />}
+              target={
+                <ExecShellForm context={context} namespace={namespace} podName={podName} containers={containers} />
+              }
             />
             <Action.Push
               title="Port-Forward"
@@ -257,7 +275,8 @@ export function PodDetailView({ context, namespace, pod, onMutated }: PodDetailV
               onAction={async () => {
                 const confirmed = await confirmAlert({
                   title: `Delete pod ${podName}?`,
-                  message: "The pod will be terminated. If controlled by a Deployment/ReplicaSet, Kubernetes will recreate it.",
+                  message:
+                    "The pod will be terminated. If controlled by a Deployment/ReplicaSet, Kubernetes will recreate it.",
                   primaryAction: {
                     title: "Delete Pod",
                     style: Alert.ActionStyle.Destructive,
@@ -320,7 +339,12 @@ function TailLogsForm({
         await showToast({
           style: Toast.Style.Success,
           title: "Opened logs in terminal",
-          message: prefs.terminalApp === "iterm" ? "iTerm" : prefs.terminalApp === "terminal" ? "Terminal.app" : "System default terminal",
+          message:
+            prefs.terminalApp === "iterm"
+              ? "iTerm"
+              : prefs.terminalApp === "terminal"
+                ? "Terminal.app"
+                : "System default terminal",
         });
         return;
       }
@@ -751,8 +775,12 @@ export function PodLogsDetail({
             icon={tintedIcon(Icon.ArrowClockwise, BRAND_COLORS.sky)}
             onAction={() => setRefreshToken((value) => value + 1)}
           />
-          <Action title="Open in Terminal" icon={tintedIcon(Icon.Terminal, BRAND_COLORS.orange)} onAction={openInTerminal} />
-          <Action.CopyToClipboard title="Copy kubectl Command" content={command} />
+          <Action
+            title="Open in Terminal"
+            icon={tintedIcon(Icon.Terminal, BRAND_COLORS.orange)}
+            onAction={openInTerminal}
+          />
+          <Action.CopyToClipboard title="Copy Kubectl Command" content={command} />
           <Action.CopyToClipboard title="Copy Logs" content={effectiveLogs} />
         </ActionPanel>
       }

@@ -45,7 +45,9 @@ export default function ContextNamespaceUtilitiesCommand() {
               key={context}
               title={context}
               icon={
-                favorite ? tintedIcon(Icon.Star, BRAND_COLORS.gold) : tintedIcon(Icon.Globe, current ? BRAND_COLORS.sky : BRAND_COLORS.navy)
+                favorite
+                  ? tintedIcon(Icon.Star, BRAND_COLORS.gold)
+                  : tintedIcon(Icon.Globe, current ? BRAND_COLORS.sky : BRAND_COLORS.navy)
               }
               accessories={current ? [{ text: "Selected" }] : []}
               actions={
@@ -70,7 +72,11 @@ export default function ContextNamespaceUtilitiesCommand() {
                   />
                   <Action
                     title={favorite ? "Remove Favorite Context" : "Favorite Context"}
-                    icon={favorite ? tintedIcon(Icon.StarDisabled, BRAND_COLORS.gold) : tintedIcon(Icon.Star, BRAND_COLORS.gold)}
+                    icon={
+                      favorite
+                        ? tintedIcon(Icon.StarDisabled, BRAND_COLORS.gold)
+                        : tintedIcon(Icon.Star, BRAND_COLORS.gold)
+                    }
                     onAction={async () => {
                       await state.toggleContextFavorite(context);
                     }}
@@ -124,7 +130,11 @@ export default function ContextNamespaceUtilitiesCommand() {
                   />
                   <Action
                     title={favorite ? "Remove Favorite Namespace" : "Favorite Namespace"}
-                    icon={favorite ? tintedIcon(Icon.StarDisabled, BRAND_COLORS.gold) : tintedIcon(Icon.Star, BRAND_COLORS.gold)}
+                    icon={
+                      favorite
+                        ? tintedIcon(Icon.StarDisabled, BRAND_COLORS.gold)
+                        : tintedIcon(Icon.Star, BRAND_COLORS.gold)
+                    }
                     onAction={async () => {
                       await state.toggleNamespaceFavorite(namespace);
                     }}

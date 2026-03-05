@@ -133,13 +133,14 @@ export function useContextNamespace(): ContextNamespaceState {
       const forceRefresh = forceRefreshRef.current;
 
       try {
-        const [allNamespaces, favorites, lastSelectedNamespace, kubeconfigNamespace, defaultNamespace] = await Promise.all([
-          listNamespaces(selectedContext, { forceRefresh }),
-          getFavoriteNamespaces(selectedContext),
-          getLastSelectedNamespace(selectedContext),
-          getKubeconfigContextNamespace(selectedContext, forceRefresh),
-          getDefaultNamespace(selectedContext),
-        ]);
+        const [allNamespaces, favorites, lastSelectedNamespace, kubeconfigNamespace, defaultNamespace] =
+          await Promise.all([
+            listNamespaces(selectedContext, { forceRefresh }),
+            getFavoriteNamespaces(selectedContext),
+            getLastSelectedNamespace(selectedContext),
+            getKubeconfigContextNamespace(selectedContext, forceRefresh),
+            getDefaultNamespace(selectedContext),
+          ]);
 
         if (cancelled) {
           return;

@@ -10,7 +10,13 @@ interface SelectContextListProps {
   onToggleFavorite?: (context: string) => Promise<void>;
 }
 
-export function SelectContextList({ contexts, selectedContext, favoriteContexts, onSelect, onToggleFavorite }: SelectContextListProps) {
+export function SelectContextList({
+  contexts,
+  selectedContext,
+  favoriteContexts,
+  onSelect,
+  onToggleFavorite,
+}: SelectContextListProps) {
   const { pop } = useNavigation();
 
   return (
@@ -36,7 +42,11 @@ export function SelectContextList({ contexts, selectedContext, favoriteContexts,
                 {onToggleFavorite ? (
                   <Action
                     title={favorite ? "Remove Favorite" : "Add Favorite"}
-                    icon={favorite ? tintedIcon(Icon.StarDisabled, BRAND_COLORS.gold) : tintedIcon(Icon.Star, BRAND_COLORS.gold)}
+                    icon={
+                      favorite
+                        ? tintedIcon(Icon.StarDisabled, BRAND_COLORS.gold)
+                        : tintedIcon(Icon.Star, BRAND_COLORS.gold)
+                    }
                     onAction={async () => {
                       await onToggleFavorite(context);
                     }}
@@ -101,7 +111,11 @@ export function SelectNamespaceList({
                 {onToggleFavorite && !isAll ? (
                   <Action
                     title={favorite ? "Remove Favorite" : "Add Favorite"}
-                    icon={favorite ? tintedIcon(Icon.StarDisabled, BRAND_COLORS.gold) : tintedIcon(Icon.Star, BRAND_COLORS.gold)}
+                    icon={
+                      favorite
+                        ? tintedIcon(Icon.StarDisabled, BRAND_COLORS.gold)
+                        : tintedIcon(Icon.Star, BRAND_COLORS.gold)
+                    }
                     onAction={async () => {
                       await onToggleFavorite(namespace);
                     }}

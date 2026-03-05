@@ -26,7 +26,8 @@ export default function DeploymentActionsCommand() {
   useEffect(() => {
     const namespaceReady =
       Boolean(contextState.selectedNamespace) &&
-      (isAllNamespaces(contextState.selectedNamespace) || contextState.namespaces.includes(contextState.selectedNamespace));
+      (isAllNamespaces(contextState.selectedNamespace) ||
+        contextState.namespaces.includes(contextState.selectedNamespace));
 
     if (!contextState.selectedContext || !namespaceReady) {
       setDeployments([]);
@@ -103,7 +104,9 @@ export default function DeploymentActionsCommand() {
               icon={tintedIcon(Icon.Gear, BRAND_COLORS.blue)}
               accessories={[
                 { tag: { value: ready, color: readyColor(ready) } },
-                ...(isAllNamespaces(contextState.selectedNamespace) ? [{ text: deployment.metadata.namespace ?? "default" }] : []),
+                ...(isAllNamespaces(contextState.selectedNamespace)
+                  ? [{ text: deployment.metadata.namespace ?? "default" }]
+                  : []),
                 { text: formatAge(deployment.metadata.creationTimestamp) },
               ]}
               actions={
@@ -120,7 +123,11 @@ export default function DeploymentActionsCommand() {
                       />
                     }
                   />
-                  <Action title="Refresh Resources" icon={tintedIcon(Icon.ArrowClockwise, BRAND_COLORS.sky)} onAction={refreshResources} />
+                  <Action
+                    title="Refresh Resources"
+                    icon={tintedIcon(Icon.ArrowClockwise, BRAND_COLORS.sky)}
+                    onAction={refreshResources}
+                  />
                 </ActionPanel>
               }
             />

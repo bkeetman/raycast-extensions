@@ -71,8 +71,16 @@ export function TargetSection({ state, onRefreshResources, onReloadTargets }: Ta
                 />
               }
             />
-            <Action title="Refresh Resources" icon={tintedIcon(Icon.ArrowClockwise, BRAND_COLORS.sky)} onAction={onRefreshResources} />
-            <Action title="Reload Targets" icon={tintedIcon(Icon.Repeat, BRAND_COLORS.orange)} onAction={onReloadTargets} />
+            <Action
+              title="Refresh Resources"
+              icon={tintedIcon(Icon.ArrowClockwise, BRAND_COLORS.sky)}
+              onAction={onRefreshResources}
+            />
+            <Action
+              title="Reload Targets"
+              icon={tintedIcon(Icon.Repeat, BRAND_COLORS.orange)}
+              onAction={onReloadTargets}
+            />
           </ActionPanel>
         }
       />

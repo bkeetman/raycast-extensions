@@ -56,7 +56,12 @@ export async function setPersistentCache<T>(key: string, value: T, ttlMs: number
   await LocalStorage.setItem(key, JSON.stringify(payload));
 }
 
-export async function withCache<T>(key: string, ttlMs: number, fetcher: () => Promise<T>, persistent = true): Promise<T> {
+export async function withCache<T>(
+  key: string,
+  ttlMs: number,
+  fetcher: () => Promise<T>,
+  persistent = true,
+): Promise<T> {
   const memory = getMemoryCache<T>(key);
   if (memory !== undefined) {
     return memory;

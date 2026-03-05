@@ -140,7 +140,10 @@ export async function resolveBinaryPath(binary: string): Promise<string> {
   }
 }
 
-export async function runBinaryVersion(binary: string, args: string[]): Promise<{ command: string; output: string; ok: boolean }> {
+export async function runBinaryVersion(
+  binary: string,
+  args: string[],
+): Promise<{ command: string; output: string; ok: boolean }> {
   const command = formatCommand(binary, args);
 
   try {

@@ -12,12 +12,14 @@ export function podReadyStatus(pod: Pod): string {
 }
 
 export function podStatus(pod: Pod): string {
-  const waiting = pod.status?.containerStatuses?.find((status) => status.state?.waiting?.reason)?.state?.waiting?.reason;
+  const waiting = pod.status?.containerStatuses?.find((status) => status.state?.waiting?.reason)?.state?.waiting
+    ?.reason;
   if (waiting) {
     return waiting;
   }
 
-  const terminated = pod.status?.containerStatuses?.find((status) => status.state?.terminated?.reason)?.state?.terminated?.reason;
+  const terminated = pod.status?.containerStatuses?.find((status) => status.state?.terminated?.reason)?.state
+    ?.terminated?.reason;
   if (terminated) {
     return terminated;
   }
@@ -63,7 +65,9 @@ export function deploymentSubtitle(deployment: Deployment): string {
 export function serviceSummary(service: Service): string {
   const type = service.spec?.type ?? "ClusterIP";
   const clusterIp = service.spec?.clusterIP ?? "-";
-  const ports = (service.spec?.ports ?? []).map((port) => `${port.port ?? "?"}/${(port.protocol ?? "TCP").toUpperCase()}`).join(", ");
+  const ports = (service.spec?.ports ?? [])
+    .map((port) => `${port.port ?? "?"}/${(port.protocol ?? "TCP").toUpperCase()}`)
+    .join(", ");
 
   return `${type} • ${clusterIp} • ${ports || "No ports"} • ${formatAge(service.metadata.creationTimestamp)}`;
 }

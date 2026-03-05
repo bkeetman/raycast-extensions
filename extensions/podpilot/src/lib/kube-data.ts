@@ -69,8 +69,12 @@ export async function setCurrentContext(context: string): Promise<void> {
   clearMemoryCacheByPrefix(cacheKey("current-context"));
 }
 
-export async function listNamespaces(context: string, forceRefreshOrOptions: boolean | QueryOptions = false): Promise<string[]> {
-  const forceRefresh = typeof forceRefreshOrOptions === "boolean" ? forceRefreshOrOptions : Boolean(forceRefreshOrOptions.forceRefresh);
+export async function listNamespaces(
+  context: string,
+  forceRefreshOrOptions: boolean | QueryOptions = false,
+): Promise<string[]> {
+  const forceRefresh =
+    typeof forceRefreshOrOptions === "boolean" ? forceRefreshOrOptions : Boolean(forceRefreshOrOptions.forceRefresh);
   const signal = typeof forceRefreshOrOptions === "boolean" ? undefined : forceRefreshOrOptions.signal;
   const key = cacheKey("namespaces", context);
   if (forceRefresh) {
@@ -88,7 +92,10 @@ export async function listNamespaces(context: string, forceRefreshOrOptions: boo
   );
 }
 
-export async function getKubeconfigContextNamespace(context: string, forceRefresh = false): Promise<string | undefined> {
+export async function getKubeconfigContextNamespace(
+  context: string,
+  forceRefresh = false,
+): Promise<string | undefined> {
   const key = cacheKey("kubeconfig-context-namespace", context);
   if (forceRefresh) {
     clearMemoryCacheByPrefix(key);
@@ -107,8 +114,13 @@ export async function getKubeconfigContextNamespace(context: string, forceRefres
   );
 }
 
-export async function getPods(context: string, namespace: string, forceRefreshOrOptions: boolean | QueryOptions = false): Promise<Pod[]> {
-  const forceRefresh = typeof forceRefreshOrOptions === "boolean" ? forceRefreshOrOptions : Boolean(forceRefreshOrOptions.forceRefresh);
+export async function getPods(
+  context: string,
+  namespace: string,
+  forceRefreshOrOptions: boolean | QueryOptions = false,
+): Promise<Pod[]> {
+  const forceRefresh =
+    typeof forceRefreshOrOptions === "boolean" ? forceRefreshOrOptions : Boolean(forceRefreshOrOptions.forceRefresh);
   const signal = typeof forceRefreshOrOptions === "boolean" ? undefined : forceRefreshOrOptions.signal;
   const key = cacheKey("pods", context, namespace);
   if (forceRefresh) {
@@ -121,7 +133,9 @@ export async function getPods(context: string, namespace: string, forceRefreshOr
     async () => {
       const namespaceScopeArgs = isAllNamespaces(namespace) ? ["-A"] : ["-n", namespace];
       const payload = await runKubectlJson<K8sList<Pod>>(["get", "pods", ...namespaceScopeArgs], { context, signal });
-      return isAllNamespaces(namespace) ? payload.items : payload.items.filter((item) => item.metadata.namespace === namespace);
+      return isAllNamespaces(namespace)
+        ? payload.items
+        : payload.items.filter((item) => item.metadata.namespace === namespace);
     },
     false,
   );
@@ -132,7 +146,8 @@ export async function getDeployments(
   namespace: string,
   forceRefreshOrOptions: boolean | QueryOptions = false,
 ): Promise<Deployment[]> {
-  const forceRefresh = typeof forceRefreshOrOptions === "boolean" ? forceRefreshOrOptions : Boolean(forceRefreshOrOptions.forceRefresh);
+  const forceRefresh =
+    typeof forceRefreshOrOptions === "boolean" ? forceRefreshOrOptions : Boolean(forceRefreshOrOptions.forceRefresh);
   const signal = typeof forceRefreshOrOptions === "boolean" ? undefined : forceRefreshOrOptions.signal;
   const key = cacheKey("deployments", context, namespace);
   if (forceRefresh) {
@@ -144,8 +159,13 @@ export async function getDeployments(
     TTL_RESOURCES,
     async () => {
       const namespaceScopeArgs = isAllNamespaces(namespace) ? ["-A"] : ["-n", namespace];
-      const payload = await runKubectlJson<K8sList<Deployment>>(["get", "deployments", ...namespaceScopeArgs], { context, signal });
-      return isAllNamespaces(namespace) ? payload.items : payload.items.filter((item) => item.metadata.namespace === namespace);
+      const payload = await runKubectlJson<K8sList<Deployment>>(["get", "deployments", ...namespaceScopeArgs], {
+        context,
+        signal,
+      });
+      return isAllNamespaces(namespace)
+        ? payload.items
+        : payload.items.filter((item) => item.metadata.namespace === namespace);
     },
     false,
   );
@@ -156,7 +176,8 @@ export async function getServices(
   namespace: string,
   forceRefreshOrOptions: boolean | QueryOptions = false,
 ): Promise<Service[]> {
-  const forceRefresh = typeof forceRefreshOrOptions === "boolean" ? forceRefreshOrOptions : Boolean(forceRefreshOrOptions.forceRefresh);
+  const forceRefresh =
+    typeof forceRefreshOrOptions === "boolean" ? forceRefreshOrOptions : Boolean(forceRefreshOrOptions.forceRefresh);
   const signal = typeof forceRefreshOrOptions === "boolean" ? undefined : forceRefreshOrOptions.signal;
   const key = cacheKey("services", context, namespace);
   if (forceRefresh) {
@@ -168,15 +189,25 @@ export async function getServices(
     TTL_RESOURCES,
     async () => {
       const namespaceScopeArgs = isAllNamespaces(namespace) ? ["-A"] : ["-n", namespace];
-      const payload = await runKubectlJson<K8sList<Service>>(["get", "services", ...namespaceScopeArgs], { context, signal });
-      return isAllNamespaces(namespace) ? payload.items : payload.items.filter((item) => item.metadata.namespace === namespace);
+      const payload = await runKubectlJson<K8sList<Service>>(["get", "services", ...namespaceScopeArgs], {
+        context,
+        signal,
+      });
+      return isAllNamespaces(namespace)
+        ? payload.items
+        : payload.items.filter((item) => item.metadata.namespace === namespace);
     },
     false,
   );
 }
 
-export async function getJobs(context: string, namespace: string, forceRefreshOrOptions: boolean | QueryOptions = false): Promise<Job[]> {
-  const forceRefresh = typeof forceRefreshOrOptions === "boolean" ? forceRefreshOrOptions : Boolean(forceRefreshOrOptions.forceRefresh);
+export async function getJobs(
+  context: string,
+  namespace: string,
+  forceRefreshOrOptions: boolean | QueryOptions = false,
+): Promise<Job[]> {
+  const forceRefresh =
+    typeof forceRefreshOrOptions === "boolean" ? forceRefreshOrOptions : Boolean(forceRefreshOrOptions.forceRefresh);
   const signal = typeof forceRefreshOrOptions === "boolean" ? undefined : forceRefreshOrOptions.signal;
   const key = cacheKey("jobs", context, namespace);
   if (forceRefresh) {
@@ -189,7 +220,9 @@ export async function getJobs(context: string, namespace: string, forceRefreshOr
     async () => {
       const namespaceScopeArgs = isAllNamespaces(namespace) ? ["-A"] : ["-n", namespace];
       const payload = await runKubectlJson<K8sList<Job>>(["get", "jobs", ...namespaceScopeArgs], { context, signal });
-      return isAllNamespaces(namespace) ? payload.items : payload.items.filter((item) => item.metadata.namespace === namespace);
+      return isAllNamespaces(namespace)
+        ? payload.items
+        : payload.items.filter((item) => item.metadata.namespace === namespace);
     },
     false,
   );
@@ -200,7 +233,8 @@ export async function getCronJobs(
   namespace: string,
   forceRefreshOrOptions: boolean | QueryOptions = false,
 ): Promise<CronJob[]> {
-  const forceRefresh = typeof forceRefreshOrOptions === "boolean" ? forceRefreshOrOptions : Boolean(forceRefreshOrOptions.forceRefresh);
+  const forceRefresh =
+    typeof forceRefreshOrOptions === "boolean" ? forceRefreshOrOptions : Boolean(forceRefreshOrOptions.forceRefresh);
   const signal = typeof forceRefreshOrOptions === "boolean" ? undefined : forceRefreshOrOptions.signal;
   const key = cacheKey("cronjobs", context, namespace);
   if (forceRefresh) {
@@ -212,8 +246,13 @@ export async function getCronJobs(
     TTL_RESOURCES,
     async () => {
       const namespaceScopeArgs = isAllNamespaces(namespace) ? ["-A"] : ["-n", namespace];
-      const payload = await runKubectlJson<K8sList<CronJob>>(["get", "cronjobs", ...namespaceScopeArgs], { context, signal });
-      return isAllNamespaces(namespace) ? payload.items : payload.items.filter((item) => item.metadata.namespace === namespace);
+      const payload = await runKubectlJson<K8sList<CronJob>>(["get", "cronjobs", ...namespaceScopeArgs], {
+        context,
+        signal,
+      });
+      return isAllNamespaces(namespace)
+        ? payload.items
+        : payload.items.filter((item) => item.metadata.namespace === namespace);
     },
     false,
   );
@@ -225,7 +264,8 @@ export async function getPodsForDeployment(
   deployment: Deployment,
   forceRefreshOrOptions: boolean | QueryOptions = false,
 ): Promise<Pod[]> {
-  const forceRefresh = typeof forceRefreshOrOptions === "boolean" ? forceRefreshOrOptions : Boolean(forceRefreshOrOptions.forceRefresh);
+  const forceRefresh =
+    typeof forceRefreshOrOptions === "boolean" ? forceRefreshOrOptions : Boolean(forceRefreshOrOptions.forceRefresh);
   const signal = typeof forceRefreshOrOptions === "boolean" ? undefined : forceRefreshOrOptions.signal;
   const selector = serializeLabelSelector(deployment.spec?.selector);
   if (!selector) {
@@ -241,7 +281,10 @@ export async function getPodsForDeployment(
     key,
     TTL_RESOURCES,
     async () => {
-      const payload = await runKubectlJson<K8sList<Pod>>(["get", "pods", "-n", namespace, "-l", selector], { context, signal });
+      const payload = await runKubectlJson<K8sList<Pod>>(["get", "pods", "-n", namespace, "-l", selector], {
+        context,
+        signal,
+      });
       return payload.items.filter((item) => item.metadata.namespace === namespace);
     },
     false,
@@ -259,7 +302,13 @@ export function clearResourceCache(context: string, namespace: string): void {
 
 export async function getDeploymentEvents(context: string, namespace: string, deployment: string): Promise<string> {
   const result = await runKubectl(
-    ["get", "events", "--field-selector", `involvedObject.kind=Deployment,involvedObject.name=${deployment}`, "--sort-by=.lastTimestamp"],
+    [
+      "get",
+      "events",
+      "--field-selector",
+      `involvedObject.kind=Deployment,involvedObject.name=${deployment}`,
+      "--sort-by=.lastTimestamp",
+    ],
     { context, namespace },
   );
 

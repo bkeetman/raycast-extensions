@@ -57,7 +57,8 @@ export function ResourceCommandList<T extends NamespacedResource>({
   useEffect(() => {
     const namespaceReady =
       Boolean(contextState.selectedNamespace) &&
-      (isAllNamespaces(contextState.selectedNamespace) || contextState.namespaces.includes(contextState.selectedNamespace));
+      (isAllNamespaces(contextState.selectedNamespace) ||
+        contextState.namespaces.includes(contextState.selectedNamespace));
 
     if (!contextState.selectedContext || !namespaceReady) {
       setItems([]);
@@ -94,7 +95,13 @@ export function ResourceCommandList<T extends NamespacedResource>({
     return () => {
       controller.abort();
     };
-  }, [contextState.namespaces, contextState.selectedContext, contextState.selectedNamespace, loadResources, refreshToken]);
+  }, [
+    contextState.namespaces,
+    contextState.selectedContext,
+    contextState.selectedNamespace,
+    loadResources,
+    refreshToken,
+  ]);
 
   const refreshResources = async () => {
     if (contextState.selectedContext && contextState.selectedNamespace) {
@@ -129,7 +136,9 @@ export function ResourceCommandList<T extends NamespacedResource>({
             title={getItemTitle(item)}
             subtitle={getItemSubtitle(item)}
             icon={tintedIcon(Icon.Circle, BRAND_COLORS.sky)}
-            accessories={isAllNamespaces(contextState.selectedNamespace) ? [{ text: item.metadata.namespace ?? "default" }] : []}
+            accessories={
+              isAllNamespaces(contextState.selectedNamespace) ? [{ text: item.metadata.namespace ?? "default" }] : []
+            }
             actions={
               <ActionPanel>
                 {renderItemActions({
@@ -138,7 +147,11 @@ export function ResourceCommandList<T extends NamespacedResource>({
                   selectedNamespace: contextState.selectedNamespace,
                   refreshResources,
                 })}
-                <Action title="Refresh Resources" icon={tintedIcon(Icon.ArrowClockwise, BRAND_COLORS.sky)} onAction={refreshResources} />
+                <Action
+                  title="Refresh Resources"
+                  icon={tintedIcon(Icon.ArrowClockwise, BRAND_COLORS.sky)}
+                  onAction={refreshResources}
+                />
               </ActionPanel>
             }
           />

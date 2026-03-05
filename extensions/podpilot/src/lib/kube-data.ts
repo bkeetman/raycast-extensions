@@ -259,13 +259,7 @@ export function clearResourceCache(context: string, namespace: string): void {
 
 export async function getDeploymentEvents(context: string, namespace: string, deployment: string): Promise<string> {
   const result = await runKubectl(
-    [
-      "get",
-      "events",
-      "--field-selector",
-      `involvedObject.kind=Deployment,involvedObject.name=${deployment}`,
-      "--sort-by=.lastTimestamp",
-    ],
+    ["get", "events", "--field-selector", `involvedObject.kind=Deployment,involvedObject.name=${deployment}`, "--sort-by=.lastTimestamp"],
     { context, namespace },
   );
 

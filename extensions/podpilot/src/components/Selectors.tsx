@@ -10,13 +10,7 @@ interface SelectContextListProps {
   onToggleFavorite?: (context: string) => Promise<void>;
 }
 
-export function SelectContextList({
-  contexts,
-  selectedContext,
-  favoriteContexts,
-  onSelect,
-  onToggleFavorite,
-}: SelectContextListProps) {
+export function SelectContextList({ contexts, selectedContext, favoriteContexts, onSelect, onToggleFavorite }: SelectContextListProps) {
   const { pop } = useNavigation();
 
   return (

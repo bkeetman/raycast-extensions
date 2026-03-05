@@ -1,16 +1,4 @@
-import {
-  Action,
-  ActionPanel,
-  Alert,
-  Clipboard,
-  Detail,
-  Form,
-  Icon,
-  Toast,
-  confirmAlert,
-  showToast,
-  useNavigation,
-} from "@raycast/api";
+import { Action, ActionPanel, Alert, Clipboard, Detail, Form, Icon, Toast, confirmAlert, showToast, useNavigation } from "@raycast/api";
 import { FormValidation, useForm } from "@raycast/utils";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { BRAND_COLORS, podpilotHeader, podpilotTitle, tintedIcon } from "../lib/brand";
@@ -80,12 +68,15 @@ function normalizeLogStream(raw: string): string {
 
 function restoreBareAnsiSequences(raw: string): string {
   const normalized = normalizeLogStream(raw);
-  return normalized.replace(/(^|[^\u001b])\[(\d{1,3}(?:;\d{1,3})*)m/g, (_match, prefix: string, sgr: string) => {
+  // eslint-disable-next-line no-control-regex
+  const bareAnsiRegex = new RegExp("(^|[^\\u001b])\\[(\\d{1,3}(?:;\\d{1,3})*)m", "g");
+  return normalized.replace(bareAnsiRegex, (_match, prefix: string, sgr: string) => {
     return `${prefix}\u001b[${sgr}m`;
   });
 }
 
-const ANSI_ESCAPE_REGEX = /\u001b\[([0-9;]*)m/g;
+// eslint-disable-next-line no-control-regex
+const ANSI_ESCAPE_REGEX = new RegExp("\\u001b\\[([0-9;]*)m", "g");
 
 function stripAnsiControlCodes(raw: string): string {
   return restoreBareAnsiSequences(raw).replace(ANSI_ESCAPE_REGEX, "");
@@ -329,7 +320,7 @@ function TailLogsForm({
         await showToast({
           style: Toast.Style.Success,
           title: "Opened logs in terminal",
-          message: prefs.terminalApp === "iterm" ? "iTerm" : "Terminal.app",
+          message: prefs.terminalApp === "iterm" ? "iTerm" : prefs.terminalApp === "terminal" ? "Terminal.app" : "System default terminal",
         });
         return;
       }
@@ -492,15 +483,7 @@ function ExecShellForm({
   );
 }
 
-function PortForwardForm({
-  context,
-  namespace,
-  podName,
-}: {
-  context: string;
-  namespace: string;
-  podName: string;
-}) {
+function PortForwardForm({ context, namespace, podName }: { context: string; namespace: string; podName: string }) {
   const prefs = useMemo(() => getResolvedPreferences(), []);
   const { pop } = useNavigation();
   const { handleSubmit, itemProps } = useForm<PortForwardValues>({
@@ -620,9 +603,9 @@ export function PodLogsDetail({
       };
     });
 
-    // Newest-first ordering for top-locked follow mode.
-    const merged = [...nextLines.reverse(), ...logLinesRef.current];
-    const trimmed = merged.length > MAX_LOG_BUFFER_LINES ? merged.slice(0, MAX_LOG_BUFFER_LINES) : merged;
+    // Keep terminal order stable: oldest -> newest.
+    const merged = [...logLinesRef.current, ...nextLines];
+    const trimmed = merged.length > MAX_LOG_BUFFER_LINES ? merged.slice(-MAX_LOG_BUFFER_LINES) : merged;
     logLinesRef.current = trimmed;
     setLogLines(trimmed);
   }, []);
@@ -734,7 +717,7 @@ export function PodLogsDetail({
     return `${normalized.stdout ?? ""}${normalized.stderr ?? ""}`.trim();
   }, [error]);
   const effectiveLogs = useMemo(
-    () => (logLines.length > 0 ? [...logLines].reverse().map((line) => line.raw).join("\n") : errorLogs),
+    () => (logLines.length > 0 ? logLines.map((line) => line.raw).join("\n") : errorLogs),
     [errorLogs, logLines],
   );
   const markdown = useMemo(() => {
@@ -763,7 +746,11 @@ export function PodLogsDetail({
       navigationTitle={podpilotTitle(`Logs: ${podName}${container ? ` (${container})` : ""}`)}
       actions={
         <ActionPanel>
-          <Action title={refreshTitle} icon={tintedIcon(Icon.ArrowClockwise, BRAND_COLORS.sky)} onAction={() => setRefreshToken((value) => value + 1)} />
+          <Action
+            title={refreshTitle}
+            icon={tintedIcon(Icon.ArrowClockwise, BRAND_COLORS.sky)}
+            onAction={() => setRefreshToken((value) => value + 1)}
+          />
           <Action title="Open in Terminal" icon={tintedIcon(Icon.Terminal, BRAND_COLORS.orange)} onAction={openInTerminal} />
           <Action.CopyToClipboard title="Copy kubectl Command" content={command} />
           <Action.CopyToClipboard title="Copy Logs" content={effectiveLogs} />

@@ -41,13 +41,14 @@ export default function DiagnosticsCommand() {
         contextError = error;
       }
 
-      let namespaceCheckOk = false;
-      let namespaceCheckDetails = "";
+      let namespaceCheckOk: boolean;
+      let namespaceCheckDetails: string;
       try {
         const namespaceResult = await runKubectl(["get", "ns", "-o", "json"], { signal: controller.signal });
         namespaceCheckOk = true;
         namespaceCheckDetails = `\`\`\`json\n${namespaceResult.stdout.slice(0, 2_000)}\n\`\`\``;
       } catch (error) {
+        namespaceCheckOk = false;
         const normalized = normalizeError(error);
         namespaceCheckDetails = `${normalized.message}
 

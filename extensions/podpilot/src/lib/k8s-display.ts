@@ -63,9 +63,7 @@ export function deploymentSubtitle(deployment: Deployment): string {
 export function serviceSummary(service: Service): string {
   const type = service.spec?.type ?? "ClusterIP";
   const clusterIp = service.spec?.clusterIP ?? "-";
-  const ports = (service.spec?.ports ?? [])
-    .map((port) => `${port.port ?? "?"}/${(port.protocol ?? "TCP").toUpperCase()}`)
-    .join(", ");
+  const ports = (service.spec?.ports ?? []).map((port) => `${port.port ?? "?"}/${(port.protocol ?? "TCP").toUpperCase()}`).join(", ");
 
   return `${type} • ${clusterIp} • ${ports || "No ports"} • ${formatAge(service.metadata.creationTimestamp)}`;
 }
@@ -98,7 +96,9 @@ export function deploymentPrimaryImage(deployment: Deployment): string {
 }
 
 function deploymentImageList(deployment: Deployment): string[] {
-  const rawImages = deployment.spec?.template?.spec?.containers?.map((container) => container.image).filter(Boolean) as string[] | undefined;
+  const rawImages = deployment.spec?.template?.spec?.containers?.map((container) => container.image).filter(Boolean) as
+    | string[]
+    | undefined;
   if (!rawImages || rawImages.length === 0) {
     return [];
   }

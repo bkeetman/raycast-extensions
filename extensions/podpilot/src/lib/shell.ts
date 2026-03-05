@@ -26,8 +26,11 @@ ${command}
   await writeFile(filePath, script, "utf8");
   await chmod(filePath, 0o755);
 
+  if (terminalApp === "default") {
+    await execa("open", [filePath], { reject: true });
+    return;
+  }
+
   const appName = terminalApp === "iterm" ? "iTerm" : "Terminal";
-  await execa("open", ["-a", appName, filePath], {
-    reject: true,
-  });
+  await execa("open", ["-a", appName, filePath], { reject: true });
 }

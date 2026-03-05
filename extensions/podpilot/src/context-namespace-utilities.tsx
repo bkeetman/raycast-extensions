@@ -45,9 +45,7 @@ export default function ContextNamespaceUtilitiesCommand() {
               key={context}
               title={context}
               icon={
-                favorite
-                  ? tintedIcon(Icon.Star, BRAND_COLORS.gold)
-                  : tintedIcon(Icon.Globe, current ? BRAND_COLORS.sky : BRAND_COLORS.navy)
+                favorite ? tintedIcon(Icon.Star, BRAND_COLORS.gold) : tintedIcon(Icon.Globe, current ? BRAND_COLORS.sky : BRAND_COLORS.navy)
               }
               accessories={current ? [{ text: "Selected" }] : []}
               actions={

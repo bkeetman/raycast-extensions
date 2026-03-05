@@ -1,6 +1,6 @@
 export type ResourceTab = "pods" | "deployments" | "services" | "jobs" | "cronjobs";
 
-export type TerminalApp = "terminal" | "iterm";
+export type TerminalApp = "default" | "terminal" | "iterm";
 
 export interface KubectlResult {
   stdout: string;

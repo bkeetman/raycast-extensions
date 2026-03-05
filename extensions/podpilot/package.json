@@ -38,8 +38,12 @@
       "title": "Terminal App",
       "description": "App used for exec shell and port-forward commands",
       "type": "dropdown",
-      "default": "terminal",
+      "default": "default",
       "data": [
+        {
+          "title": "System Default Terminal",
+          "value": "default"
+        },
         {
           "title": "Terminal.app",
           "value": "terminal"
@@ -130,7 +134,10 @@
   "scripts": {
     "dev": "ray develop",
     "build": "ray build",
-    "lint": "ray lint",
+    "lint": "ray lint && npm run lint:eslint && npm run lint:prettier",
+    "lint:eslint": "eslint \"src/**/*.{ts,tsx}\"",
+    "lint:prettier": "prettier --check \"**/*.{ts,tsx,js,mjs,json,md}\"",
+    "format": "prettier --write \"**/*.{ts,tsx,js,mjs,json,md}\"",
     "publish": "npx @raycast/api@latest publish"
   },
   "dependencies": {
@@ -140,8 +147,13 @@
     "react": "^19.0.0"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@types/node": "^20.17.57",
     "@types/react": "^19.0.10",
-    "typescript": "^5.8.2"
+    "eslint": "^10.0.2",
+    "globals": "^17.4.0",
+    "prettier": "^3.8.1",
+    "typescript": "^5.8.2",
+    "typescript-eslint": "^8.56.1"
   }
 }

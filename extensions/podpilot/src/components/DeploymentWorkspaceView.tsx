@@ -1,15 +1,4 @@
-import {
-  Action,
-  ActionPanel,
-  Alert,
-  Form,
-  Icon,
-  List,
-  Toast,
-  confirmAlert,
-  showToast,
-  useNavigation,
-} from "@raycast/api";
+import { Action, ActionPanel, Alert, Form, Icon, List, Toast, confirmAlert, showToast, useNavigation } from "@raycast/api";
 import { FormValidation, useForm } from "@raycast/utils";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { BRAND_COLORS, podPhaseColor, podpilotHeader, podpilotTitle, readyColor, tintedIcon } from "../lib/brand";
@@ -94,7 +83,8 @@ export function DeploymentWorkspaceView({ context, namespace, deployment, onMuta
   );
 
   const summary = useMemo(
-    () => `Ready ${deploymentReadyStatus(deployment)} • ${formatAge(deployment.metadata.creationTimestamp)} • ${deploymentPrimaryImage(deployment)}`,
+    () =>
+      `Ready ${deploymentReadyStatus(deployment)} • ${formatAge(deployment.metadata.creationTimestamp)} • ${deploymentPrimaryImage(deployment)}`,
     [deployment],
   );
 

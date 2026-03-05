@@ -120,11 +120,7 @@ export default function DeploymentActionsCommand() {
                       />
                     }
                   />
-                  <Action
-                    title="Refresh Resources"
-                    icon={tintedIcon(Icon.ArrowClockwise, BRAND_COLORS.sky)}
-                    onAction={refreshResources}
-                  />
+                  <Action title="Refresh Resources" icon={tintedIcon(Icon.ArrowClockwise, BRAND_COLORS.sky)} onAction={refreshResources} />
                 </ActionPanel>
               }
             />

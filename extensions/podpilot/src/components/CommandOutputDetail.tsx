@@ -49,7 +49,9 @@ export function CommandOutputDetail({ title, subtitle, run }: CommandOutputDetai
       <Detail.Metadata>
         <Detail.Metadata.Label title="Workspace" text="PodPilot" icon="podpilot.png" />
         <Detail.Metadata.Label title="Context" text={context} icon={tintedIcon(Icon.Globe, BRAND_COLORS.sky)} />
-        {namespace ? <Detail.Metadata.Label title="Namespace" text={namespace} icon={tintedIcon(Icon.TextCursor, BRAND_COLORS.gold)} /> : null}
+        {namespace ? (
+          <Detail.Metadata.Label title="Namespace" text={namespace} icon={tintedIcon(Icon.TextCursor, BRAND_COLORS.gold)} />
+        ) : null}
       </Detail.Metadata>
     );
   })();

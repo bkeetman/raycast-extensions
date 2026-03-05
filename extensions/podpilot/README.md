@@ -7,11 +7,13 @@ PodPilot is a Raycast extension for daily Kubernetes operations using your exist
 ## Features
 
 ### Browse Resources
+
 - Select context and namespace
 - Browse Pods, Deployments, Services, Jobs, and CronJobs in one command
 - Useful status fields are shown inline (ready, age, node, images)
 
 ### Pod Actions
+
 - Tail logs (container selection + follow stream)
 - Copy logs (last N lines)
 - Exec shell (opens Terminal.app or iTerm with generated `kubectl exec -it ...`)
@@ -19,6 +21,7 @@ PodPilot is a Raycast extension for daily Kubernetes operations using your exist
 - Port-forward (custom local/remote ports, optional browser open)
 
 ### Deployment Actions
+
 - Rollout restart
 - Rollout status
 - Undo rollout (confirmation)
@@ -26,11 +29,13 @@ PodPilot is a Raycast extension for daily Kubernetes operations using your exist
 - Show deployment events
 
 ### Context/Namespace Utilities
+
 - Quick switch current context (`kubectl config use-context`)
 - Set default namespace per context (stored in Raycast local storage)
 - Favorite contexts and namespaces (favorites shown first)
 
 ### Diagnostics
+
 - Shows configured and detected `kubectl`/`aws` paths
 - Shows versions for both binaries
 - Shows current context
@@ -51,6 +56,7 @@ npm run dev
 ```
 
 3. In Raycast extension preferences, configure:
+
 - `kubectl Path` (default `kubectl`)
 - `aws Path` (default `aws`)
 - `Terminal App` (`Terminal.app` or `iTerm`)
@@ -60,6 +66,7 @@ npm run dev
 ## PATH and Auth Caveats
 
 Raycast runs as a GUI app and may not inherit your full shell PATH. To avoid auth/plugin failures:
+
 - Prefer absolute paths when needed (for example `/opt/homebrew/bin/kubectl` and `/opt/homebrew/bin/aws`)
 - PodPilot prepends configured `kubectl` and `aws` directories to `PATH` for command execution
 - This allows kubeconfig exec plugins (including EKS with `aws eks get-token`) to work more reliably

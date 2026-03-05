@@ -16,7 +16,9 @@ export function getResolvedPreferences(): ResolvedPreferences {
   const prefs = getPreferenceValues<Preferences>();
   const kubectlPath = normalizeText(prefs.kubectlPath, "kubectl");
   const awsPath = normalizeText(prefs.awsPath, "aws");
-  const terminalApp: TerminalApp = prefs.terminalApp === "iterm" ? "iterm" : "terminal";
+  const terminalPref = prefs.terminalApp;
+  const terminalApp: TerminalApp =
+    terminalPref === "iterm" || terminalPref === "terminal" || terminalPref === "default" ? terminalPref : "default";
   const execShell = normalizeText(prefs.execShell, "/bin/sh");
 
   const parsedTimeout = Number.parseInt(normalizeText(prefs.kubectlTimeoutMs, `${DEFAULT_TIMEOUT_MS}`), 10);
